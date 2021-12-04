@@ -1,14 +1,9 @@
 #ifndef __LIMIT_SWITCH_H
 #define __LIMIT_SWITCH_H
 
+#include "Config.h"
 #include "GPIO.h"
 
-#define X_LIMIT_PIN         ARDUINO_D9
-#define Y_LIMIT_PIN         ARDUINO_D10
-#define Z_LIMIT_PIN         ARDUINO_D11
-#define X_NORMALLY_OPEN     false
-#define Y_NORMALLY_OPEN     false
-#define Z_NORMALLY_OPEN     false
 
 class LimitSwitch {
 
@@ -28,9 +23,26 @@ class LimitSwitch {
 };
 
 
-extern LimitSwitch xLimitSw;
-extern LimitSwitch yLimitSw;
-extern LimitSwitch zLimitSw;
+#if DUAL_DRIVE_X
+    extern LimitSwitch xLimitSw1;
+    extern LimitSwitch xLimitSw2;
+#else
+    extern LimitSwitch xLimitSw;
+#endif
+
+#if DUAL_DRIVE_Y
+    extern LimitSwitch yLimitSw1;
+    extern LimitSwitch yLimitSw2;
+#else
+    extern LimitSwitch yLimitSw;
+#endif
+
+#if DUAL_DRIVE_Z
+    extern LimitSwitch zLimitSw1;
+    extern LimitSwitch zLimitSw2;
+#else
+    extern LimitSwitch zLimitSw;
+#endif
 
 
 #endif

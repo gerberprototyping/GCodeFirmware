@@ -1,6 +1,8 @@
 #include "Nucleo-L476RG.h"
-#include "Nema.h"
+#include "Config.h"
+#include "Stepper.h"
 #include "LimitSwitch.h"
+#include "StepDriver.h"
 
 
 int main() {
@@ -9,32 +11,36 @@ int main() {
 
     
     LimitSwitch::initAll();
-    Nema::initAll();
+    Stepper::initAll();
 
-    volatile bool running = false;
-    while(1) {
-        if (xLimitSw.isActive()) {
-            if (running) {
-                xNema.stepCW();
-                yNema1.stepCW();
-                yNema2.stepCW();
-                zNema.stepCW();
-                delay_microseconds(200);
-            } else {
-                running = true;
-                //for (int i=1000; i>500; i-=500) {
-                    xNema.stepCW();
-                    yNema1.stepCW();
-                    yNema2.stepCW();
-                    zNema.stepCW();
-                    //delay_microseconds(i);
-                    delay_microseconds(1000);
-                //}
-            }
-        } else {
-            running = false;
+    StepDriver y(yStepper1, yStepper2, yLimitSw1, yLimitSw2);
+    y.home();
+
+    /*int max = 2000;
+    int tolerance = 1;
+    for (int i=0; i<max; i++) {
+        yStepper1.stepPos();
+        delay_microseconds(500);
+    }
+    for (int i=0; i<max-tolerance; i++) {
+        yStepper1.stepNeg();
+        delay(1);
+        if (yLimitSw1.isActive()) {
+            break;
         }
     }
-    
+    for (int i=0; i<2*tolerance; i++) {
+        if (yLimitSw1.isActive()) {
+            break;
+        }
+        yStepper1.stepNeg();
+        delay(1);
+    }
+    if (yLimitSw1.isActive()) {
+        Stepper::disableAll();
+    }*/
+
+    Stepper::disableAll();
+    while(1);
 
 }
