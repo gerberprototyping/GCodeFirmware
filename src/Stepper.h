@@ -42,10 +42,10 @@ class Stepper {
 #endif
 
 #if DUAL_DRIVE_Z
-    extern Stepper ZStepper1;
-    extern Stepper ZStepper2;
+    extern Stepper zStepper1;
+    extern Stepper zStepper2;
 #else
-    extern Stepper ZStepper;
+    extern Stepper zStepper;
 #endif
 
 

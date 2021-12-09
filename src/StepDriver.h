@@ -5,17 +5,18 @@
 #include "Stepper.h"
 #include "LimitSwitch.h"
 
-#define MAX_PACE      500
-#define CALIB_PACE    1000
-#define BACKUP_STEPS  (10*STEPS_PER_MM)
+#define MAX_PACE        500
+#define CALIB_PACE      1000
+#define BACKUP_STEPS    (10*STEPS_PER_MM)
 
 
 class StepDriver {
 
   public:
 
-    StepDriver(Stepper stepper, LimitSwitch limitSw);
-    StepDriver(Stepper stepper1, Stepper stepper2, LimitSwitch limitSw1, LimitSwitch limitSw2);
+    StepDriver() {}
+    StepDriver(Stepper stepper, LimitSwitch limitSw, bool homeDir);
+    StepDriver(Stepper stepper1, Stepper stepper2, LimitSwitch limitSw1, LimitSwitch limitSw2, bool homeDir);
 
     void home();
 
@@ -26,9 +27,13 @@ class StepDriver {
     
     //static void interuptHandler();
 
+    static void initAll();
+    static void homeAll();
+
   private:
 
     bool dual;
+    bool homeDir;
 
     Stepper stepper1;
     Stepper stepper2;
@@ -45,6 +50,11 @@ class StepDriver {
     //static bool running;
 
 };
+
+
+extern StepDriver xStepDriver;
+extern StepDriver yStepDriver;
+extern StepDriver zStepDriver;
 
 
 #endif

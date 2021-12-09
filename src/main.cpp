@@ -3,18 +3,27 @@
 #include "Stepper.h"
 #include "LimitSwitch.h"
 #include "StepDriver.h"
+#include "TimerInterrupt.h"
+
+
+void myFunc() {
+    static bool state = false;
+    digitalWrite(ARDUINO_D13, state);
+}
 
 
 int main() {
 
     initClock40();
 
-    
-    LimitSwitch::initAll();
-    Stepper::initAll();
+    /*enableGPIO(ARDUINO_D13);
+    setMODER(ARDUINO_D13, OUTPUT);
+    TimerInterrupt timInt(40000000, &myFunc);*/
 
-    StepDriver y(yStepper1, yStepper2, yLimitSw1, yLimitSw2);
-    y.home();
+    
+    StepDriver::initAll();
+
+    StepDriver::homeAll();
 
     /*int max = 2000;
     int tolerance = 1;
