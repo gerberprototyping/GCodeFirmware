@@ -8,5 +8,8 @@
 
 void init();
 
+void initLED();
+void setLED(bool state);
+
 
 #endif

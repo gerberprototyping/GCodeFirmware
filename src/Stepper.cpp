@@ -54,20 +54,20 @@ void Stepper::stepNeg() {
 
 void Stepper::initAll() {
     enableGPIO(ENABLE_PIN);
-    enableGPIO(COOLANT_EN_PIN);
-    enableGPIO(RESET_PIN);
-    enableGPIO(FEED_HOLD_PIN);
-    enableGPIO(ABORT_PIN);
+    //enableGPIO(COOLANT_EN_PIN);
+    //enableGPIO(RESET_PIN);
+    //enableGPIO(FEED_HOLD_PIN);
+    //enableGPIO(ABORT_PIN);
     setMODER(ENABLE_PIN, OUTPUT);
-    setMODER(COOLANT_EN_PIN, OUTPUT);
-    setMODER(RESET_PIN, OUTPUT);
-    setMODER(FEED_HOLD_PIN, OUTPUT);
-    setMODER(ABORT_PIN, OUTPUT);
+    //setMODER(COOLANT_EN_PIN, OUTPUT);
+    //setMODER(RESET_PIN, OUTPUT);
+    //setMODER(FEED_HOLD_PIN, OUTPUT);
+    //setMODER(ABORT_PIN, OUTPUT);
     digitalWrite(ENABLE_PIN, LOW);
-    digitalWrite(COOLANT_EN_PIN, LOW);
-    digitalWrite(RESET_PIN, LOW);
-    digitalWrite(FEED_HOLD_PIN, LOW);
-    digitalWrite(ABORT_PIN, LOW);
+    //digitalWrite(COOLANT_EN_PIN, LOW);
+    //digitalWrite(RESET_PIN, LOW);
+    //digitalWrite(FEED_HOLD_PIN, LOW);
+    //digitalWrite(ABORT_PIN, LOW);
 
     #if DUAL_DRIVE_X
         xStepper1 = Stepper(X_STEP_PIN, X_DIR_PIN);
@@ -93,7 +93,7 @@ void Stepper::initAll() {
 
 
 void Stepper::enableAll(bool enable) {
-    digitalWrite(ENABLE_PIN, ~enable);
+    digitalWrite(ENABLE_PIN, !enable);
 }
 
 void Stepper::disableAll() {

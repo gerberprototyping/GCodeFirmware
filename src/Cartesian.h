@@ -36,6 +36,9 @@ template<typename T>
 Cartesian<T> operator/(const double &scalar, const Cartesian<T> &c);
 
 
+
+
+// Contains positional data stored as steps from origin
 struct Point: public Cartesian<int32_t> {
   Point();
   const Cartesian<double> toMM();
@@ -46,6 +49,10 @@ struct Point: public Cartesian<int32_t> {
     Point(const int32_t &x, const int32_t &y, const int32_t &z);
 };
 
+
+
+
+// Contains velocity data stored in mm/sec
 struct Velocity: Cartesian<double> {
   Velocity();
   using Cartesian::Cartesian;
