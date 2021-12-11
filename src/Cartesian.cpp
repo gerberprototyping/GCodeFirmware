@@ -85,28 +85,25 @@ Point::Point()
 
 
 const Cartesian<double> Point::toMM() {
-  double _x = ((double)x)/1000;
-  double _y = ((double)y)/1000;
-  double _z = ((double)z)/1000;
+  double _x = ((double)x)/STEPS_PER_MM;
+  double _y = ((double)y)/STEPS_PER_MM;
+  double _z = ((double)z)/STEPS_PER_MM;
   return Cartesian<double>(_x, _y, _z);
 }
 
 
 const Cartesian<int32_t> Point::toSteps() {
-  int32_t _x = (x * STEPS_PER_MM) / 1000;
-  int32_t _y = (y * STEPS_PER_MM) / 1000;
-  int32_t _z = (z * STEPS_PER_MM) / 1000;
-  return Cartesian<int32_t>(_x, _y, _z);
+  return Cartesian<int32_t>(x, y, z);
 }
 
 
 Point Point::fromMM(const double &x, const double &y, const double &z) {
-  return Point(x*1000, y*1000, z*1000);
+  return Point(x*STEPS_PER_MM, y*STEPS_PER_MM, z*STEPS_PER_MM);
 }
 
 
 Point Point::fromSteps(const int32_t &x, const int32_t &y, const int32_t &z) {
-  return Point((1000*x)/STEPS_PER_MM, (1000*y)/STEPS_PER_MM, (1000*z)/STEPS_PER_MM);
+  return Point(x, y, z);
 }
 
 
