@@ -2,10 +2,9 @@
 #define __INPUT_STREAM_H
 
 #include <stdint.h>
-#include <exception>
 
 
-struct IOException: public std::exception  {
+/*struct IOException: public std::exception  {
   const char* what() {
     return "General IO error occured";
   }
@@ -15,7 +14,7 @@ struct EOFException: public IOException  {
   const char* what() {
     return "Reached end of file or stream";
   }
-};
+};*/
 
 
 // Abstract InputStream class
@@ -39,6 +38,9 @@ class OutputStream {
     virtual void flush() = 0;
     void write(uint8_t *buffer, uint32_t n);
     void write(char *buffer, uint32_t n);
+    void print(char *str);
+    void println(char *str);
+    void println();
 
 };
 
