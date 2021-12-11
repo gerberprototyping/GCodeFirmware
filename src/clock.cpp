@@ -200,5 +200,6 @@ void delay_microseconds(uint32_t us) {
     end_tick = reload_value - (delta_tick - start_tick);
   }
   while(milliseconds < end_milli);
-  while(end_tick < SYST->CVR);
+  end_milli++;
+  while(end_tick < SYST->CVR && milliseconds < end_milli);
 }
