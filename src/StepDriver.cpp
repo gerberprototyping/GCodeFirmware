@@ -202,11 +202,9 @@ bool StepDriver::isRunning() {
 void StepDriver::interruptHandler() {
   if (running) {
     StepVector vec;
-    bool empty = stepVectorBuffer.remove(vec);
+    bool empty = motionVectorBuffer.remove(vec);
     if (!empty) {
 
-      
-      
       double t = millis() - vec.startTime;
       Cartesian<double> deltaMM = (t/1000) * vec.velocity;
       Point waypoint = vec.start + Point::fromMM(deltaMM);

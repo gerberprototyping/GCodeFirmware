@@ -6,7 +6,7 @@
 #include "Stepper.h"
 #include "LimitSwitch.h"
 #include "TimerInterrupt.h"
-#include "StepVector.h"
+#include "MotionVector.h"
 
 #define CALIB_PACE      1000
 #define BACKUP_STEPS    (1*STEPS_PER_MM)
