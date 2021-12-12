@@ -4,8 +4,8 @@
 
 #define SUB_MM_RESOLUTION                 1000
 
-#define STEP_INTERRUPT_PERIOD             8000
-#define STEP_INSTRUCTION_BUFFER_SIZE      4096
+#define STEP_INTERRUPT_PERIOD             1000
+#define STEP_INSTRUCTION_BUFFER_SIZE      64
 
 
 
@@ -20,7 +20,7 @@
 #define Y_STEPS_PER_MM          STEPS_PER_MM
 #define Z_STEPS_PER_MM          STEPS_PER_MM
 
-#define MAX_SPEED               4                                                 // Max speed in mm/sec (double)
+#define MAX_SPEED               10                                                // Max speed in mm/sec (double)
 #define MAX_PACE                ((uint32_t)(1000000/(MAX_SPEED*STEPS_PER_MM)))    // Max (or rather min) pace in microseconds/step
 
 

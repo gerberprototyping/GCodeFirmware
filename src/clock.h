@@ -36,6 +36,7 @@ void initSysTick(uint32_t reload_value);
 
 
 uint32_t millis();
+uint64_t microseconds();
 void delay(uint32_t ms);
 void delay_microseconds(uint32_t us);
 

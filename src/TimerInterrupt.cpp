@@ -10,6 +10,7 @@ ISR TimerInterrupt::isr = &emptyFunc;
 TimerInterrupt::TimerInterrupt(uint32_t period, ISR interruptHandler)
 {
   if (!initialized) {
+    initialized = true;
     isr = interruptHandler;
     NVIC_EnableIRQ(TIM2_IRQn);
     RCC->APB1ENR1 |= RCC_APB1ENR1_TIM2EN;                   // Enable Timer 2 clock
@@ -19,8 +20,19 @@ TimerInterrupt::TimerInterrupt(uint32_t period, ISR interruptHandler)
     TIM2->PSC   =  0 & 0x0000FFFF;                          // Pescaler 16-bit (0 + 1) = 1
     TIM2->ARR   =  period - 1;                              // Set auto-reload value
     TIM2->DIER |=  TIM_DIER_UIE;                            // Update interrupt enable
-    TIM2->CR1  |=  TIM_CR1_CEN;                             // Enable counter
   }
+}
+
+
+void TimerInterrupt::start() {
+  if (initialized) {
+    TIM2->CR1 |= TIM_CR1_CEN;                               // Enable counter
+  }
+}
+
+
+void TimerInterrupt::stop() {
+  TIM2->CR1 &= ~TIM_CR1_CEN;                                // Disable counter
 }
 
 

@@ -14,6 +14,9 @@ class TimerInterrupt {
   
     TimerInterrupt(uint32_t period, ISR interruptHandler);
 
+    static void start();
+    static void stop();
+
     static void callISR();
 
   private:

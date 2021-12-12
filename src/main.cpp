@@ -8,13 +8,6 @@
 #include "uart.h"
 
 
-void prefillMotionPlan(const StepInstruction &inst) {
-    for (int i=0; i<100; i++) {
-        stepInstructionBuffer.add(inst);
-    }
-}
-
-
 int main() {
 
     char str[128];
@@ -32,7 +25,25 @@ int main() {
     StepDriver::homeAll();
 
 
-    uart.println();
+    Point p0 = StepDriver::getCurrLocation();
+    Point p1 = Point::fromMM(20,20,0);
+    Point p2 = Point::fromMM(50,30,0);
+    Point p3 = Point::fromMM(10,10,0);
+    MotionVector vec1 = MotionVector(p0, p1, MAX_SPEED);
+    MotionVector vec2 = MotionVector(p1, p2, MAX_SPEED);
+    MotionVector vec3 = MotionVector(p2, p3, MAX_SPEED);
+
+    motionVectorBuffer.add(vec1);
+    motionVectorBuffer.add(vec2);
+    motionVectorBuffer.add(vec3);
+    StepDriver::start();
+    while(!motionVectorBuffer.isEmpty());
+    //StepDriver::stop();
+    setLED(true);
+    while (true);
+
+
+    /*uart.println();
     uart.println("Running extended stepping test...");
     for (int i=0; i<50*STEPS_PER_MM; i++) {
         xStepDriver.stepPos();
@@ -69,7 +80,7 @@ int main() {
         ySteps--;
     }
     sprintf(str, "  y:%d", ySteps);
-    uart.println(str);
+    uart.println(str);*/
 
 
     /*uart.println();
@@ -84,19 +95,6 @@ int main() {
     t = zStepDriver.testStepping(MAX_SPEED);
     sprintf(str, "  z: %d", t);
     uart.println(str);*/
-
-
-    /*StepInstruction inst(true, true, false, true, true, false);
-    prefillMotionPlan(inst);
-    StepDriver::start();
-
-
-    for (int i=0; i<49900; i++) {
-        while(!stepInstructionBuffer.add(inst));
-    }
-
-    while(!stepInstructionBuffer.isEmpty());
-    StepDriver::stop();*/
     
     Stepper::disableAll();
     while(1);

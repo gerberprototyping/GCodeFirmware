@@ -3,88 +3,35 @@
 
 
 
-template<typename T>
-Cartesian<T>::Cartesian(const T &x, const T &y, const T &z)
-    : x(x), y(y), z(z)
-{}
-
-
-template<typename T>
-Cartesian<T>::Cartesian(const Cartesian &c) {
-  x = c.x;
-  y = c.y;
-  z = c.z;
-}
-
-
-template<typename T>
-Cartesian<T>::Cartesian(const T &magnitude, const Cartesian<T> &direction) {
-  x = magnitude*direction.x;
-  y = magnitude*direction.y;
-  z = magnitude*direction.z;
-}
-
-
-template<typename T>
-const T Cartesian<T>::getMagnitude() {
-  return std::sqrt((x^2) + (y^2) + (z^2));
-}
-
-
-template<typename T>
-const bool Cartesian<T>::isNormalized() {
-  return operator==(normalize());
-}
-
-
-template<typename T>
-Cartesian<T> Cartesian<T>::normalize() {
-  operator/(getMagnitude());
-}
-
-
-template<typename T>
-Cartesian<T> Cartesian<T>::operator+(const Cartesian<T> &c) {
-  Cartesian(x+c.x, y+c.y, z+c.z);
-}
-
-
-template<typename T>
-Cartesian<T> Cartesian<T>::operator-(const Cartesian<T> &c) {
-  Cartesian(x-c.x, y-c.y, z-c.z);
-}
-
-
-template<typename T>
-Cartesian<T> Cartesian<T>::operator*(const double &scalar) {
-  Cartesian(x*scalar, y*scalar, z*scalar);
-}
-
-
-template<typename T>
-Cartesian<T> Cartesian<T>::operator/(const double &scalar) {
-  Cartesian(x/scalar, y/scalar, z/scalar);
-}
-
-
-template<typename T>
-const bool Cartesian<T>::operator==(const Cartesian<T> &c) {
-  return (x == c.x) && (y == c.y) && (z == c.z);
-}
-
-
-
-
-
-
-
-
 Point::Point()
-    : Cartesian(0,0,0)
-{}
+{
+  int32_t zero = 0;
+  x = 0;
+  y = 0;
+  z = 0;
+}
 
 
-const Cartesian<double> Point::toMM() {
+Point::Point(const Point &p)
+    : Cartesian(p)
+{ }
+
+
+Point::Point(const volatile Point &p) {
+  x = *((volatile int32_t*)&p.x);
+  y = *((volatile int32_t*)&p.y);
+  z = *((volatile int32_t*)&p.z);
+}
+
+
+void Point::operator=(const volatile Point &p) volatile {
+  *((volatile int32_t*)&x) = *((volatile int32_t*)&p.x);
+  *((volatile int32_t*)&y) = *((volatile int32_t*)&p.y);
+  *((volatile int32_t*)&z) = *((volatile int32_t*)&p.z);
+}
+
+
+Cartesian<double> Point::toMM() const {
   double _x = ((double)x)/STEPS_PER_MM;
   double _y = ((double)y)/STEPS_PER_MM;
   double _z = ((double)z)/STEPS_PER_MM;
@@ -92,17 +39,27 @@ const Cartesian<double> Point::toMM() {
 }
 
 
-const Cartesian<int32_t> Point::toSteps() {
+Cartesian<int32_t> Point::toSteps() const {
   return Cartesian<int32_t>(x, y, z);
 }
 
 
-Point Point::fromMM(const double &x, const double &y, const double &z) {
+Point Point::fromMM(Cartesian<double> c) {
+  return Point(c.x*STEPS_PER_MM, c.y*STEPS_PER_MM, c.z*STEPS_PER_MM);
+}
+
+
+Point Point::fromMM(double x, double y, double z) {
   return Point(x*STEPS_PER_MM, y*STEPS_PER_MM, z*STEPS_PER_MM);
 }
 
 
-Point Point::fromSteps(const int32_t &x, const int32_t &y, const int32_t &z) {
+Point Point::fromSteps(Cartesian<int32_t> c) {
+  return Point(c.x*STEPS_PER_MM, c.y*STEPS_PER_MM, c.z*STEPS_PER_MM);
+}
+
+
+Point Point::fromSteps(int32_t x, int32_t y, int32_t z) {
   return Point(x, y, z);
 }
 
@@ -112,14 +69,22 @@ Point::Point(const int32_t &x, const int32_t &y, const int32_t &z)
 {}
 
 
-template<typename T>
-Cartesian<T> operator*(const double &scalar, const Cartesian<T> &c) {
-  return c * scalar;
+Point Point::operator+(const Point &p) const {
+  return Point(x+p.x, y+p.y, z+p.z);
 }
 
-template<typename T>
-Cartesian<T> operator/(const double &scalar, const Cartesian<T> &c) {
-  return c / scalar;
+
+Point Point::operator-(const Point &p) const {
+  return Point(x-p.x, y-p.y, z-p.z);
+}
+
+
+Point Point::operator*(const double &scalar) const {
+  return Point(x*scalar, y*scalar, z*scalar);
+}
+
+Point Point::operator/(const double &scalar) const {
+  return Point(x/scalar, y/scalar, z/scalar);
 }
 
 
@@ -132,4 +97,45 @@ Cartesian<T> operator/(const double &scalar, const Cartesian<T> &c) {
 Velocity::Velocity()
     : Cartesian(0,0,0)
 {}
+
+
+Velocity::Velocity(const Cartesian<double> &vec)
+    : Cartesian(vec)
+{ }
+
+
+Velocity::Velocity(const Cartesian<int32_t> &vec)
+{
+  x = vec.x;
+  y = vec.y;
+  z = vec.z;
+}
+
+
+Velocity::Velocity(const volatile Cartesian<double> &vec) {
+  x = *((volatile double*)&vec.x);
+  y = *((volatile double*)&vec.y);
+  z = *((volatile double*)&vec.z);
+}
+
+
+Velocity::Velocity(const volatile Cartesian<int32_t> &vec) {
+  x = *((volatile int32_t*)&vec.x);
+  y = *((volatile int32_t*)&vec.y);
+  z = *((volatile int32_t*)&vec.z);
+}
+
+
+void Velocity::operator=(const volatile Cartesian<double> &vec) volatile {
+  *((volatile double*)&x) = *((volatile double*)&vec.x);
+  *((volatile double*)&y) = *((volatile double*)&vec.y);
+  *((volatile double*)&z) = *((volatile double*)&vec.z);
+}
+
+
+void Velocity::operator=(const volatile Cartesian<int32_t> &vec) volatile  {
+  *((volatile int32_t*)&x) = *((volatile int32_t*)&vec.x);
+  *((volatile int32_t*)&y) = *((volatile int32_t*)&vec.y);
+  *((volatile int32_t*)&z) = *((volatile int32_t*)&vec.z);
+}
 

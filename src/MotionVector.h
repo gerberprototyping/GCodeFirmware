@@ -9,13 +9,17 @@
 // Volatility built into class
 class MotionVector{
   public:
-    Point start, end;
-    Velocity velocity;
-    uint32_t startTime;
+    volatile Point start, end;
+    volatile Velocity velocity;
+    volatile uint64_t startTime;
     MotionVector();
-    MotionVector(const Point &start, const Point &end, const Velocity &velocity, const uint32_t &startTime);
+    MotionVector(const Point &start, const Point &end, const double &velocity);
     MotionVector(const MotionVector &vec);
+    MotionVector(const volatile MotionVector &vec);
+    void operator=(const volatile MotionVector &vec) volatile;
 };
+
+bool operator>=(const Point &curr, const MotionVector vec);
 
 
 // FIFO buffer for holding MotionVectors
@@ -29,12 +33,13 @@ class MotionVectorBuffer {
     bool isFull();
     uint32_t getSize();
 
-    bool add(const MotionVector &inst);
-    bool remove(MotionVector &inst);
+    bool add(const MotionVector &vec);
+    bool remove(volatile MotionVector** vec);
+    bool peek(volatile MotionVector** vec);
 
   private:
 
-    MotionVector buff[STEP_INSTRUCTION_BUFFER_SIZE];
+    volatile MotionVector buff[STEP_INSTRUCTION_BUFFER_SIZE];
     volatile uint32_t head = 0;
     volatile uint32_t tail = 0;
     volatile bool empty = true;

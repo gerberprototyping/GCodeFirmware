@@ -2,11 +2,13 @@
 #define __STEP_DRIVER_H
 
 #include <cmath>
+#include <algorithm>
 #include "Config.h"
 #include "Stepper.h"
 #include "LimitSwitch.h"
 #include "TimerInterrupt.h"
 #include "MotionVector.h"
+#include "Cartesian.h"
 
 #define CALIB_PACE      1000
 #define BACKUP_STEPS    (1*STEPS_PER_MM)
@@ -39,6 +41,8 @@ class StepDriver {
 
     static void interruptHandler();
 
+    static Point getCurrLocation();
+
   private:
 
     bool dual;
@@ -51,6 +55,7 @@ class StepDriver {
     Stepper stepper2;
     LimitSwitch limitSw1;
     LimitSwitch limitSw2;
+
 
     static bool running;
     static TimerInterrupt timerInterrupt;

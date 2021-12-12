@@ -184,13 +184,13 @@ bool StepDriver::testSteppingAll(double maxSpeed, int tolerance) {
 
 void StepDriver::start() {
   running = true;
-  //TODO: stop timer interrupt
+  TimerInterrupt::start();
 }
 
 
 void StepDriver::stop() {
   running = false;
-  //TODO: start timer interrupt
+  TimerInterrupt::stop();
 }
 
 
@@ -201,14 +201,52 @@ bool StepDriver::isRunning() {
 
 void StepDriver::interruptHandler() {
   if (running) {
-    StepVector vec;
-    bool empty = motionVectorBuffer.remove(vec);
-    if (!empty) {
+    volatile MotionVector* vec;
+    bool notEmpty = motionVectorBuffer.peek(&vec);
+    if (notEmpty) {
 
-      double t = millis() - vec.startTime;
-      Cartesian<double> deltaMM = (t/1000) * vec.velocity;
-      Point waypoint = vec.start + Point::fromMM(deltaMM);
+      if (vec->startTime == 0) {
+        vec->startTime = microseconds();
+      }
+
+      Point currLocation = Point::fromSteps(xStepDriver.currStep, yStepDriver.currStep, zStepDriver.currStep);
+
+      if (currLocation >= (*vec)) {
+        motionVectorBuffer.remove(&vec);
+        return;
+      }
+
+      double t = (microseconds() - vec->startTime);
+      Cartesian<double> deltaMM = vec->velocity;
+      deltaMM *= t / 1000000;
+      Point waypoint = vec->start;
+      waypoint += Point::fromMM(deltaMM);
+
+      Cartesian<int32_t> delta = (waypoint - currLocation).toSteps();
+
+      uint32_t x = std::abs(delta.x);
+      uint32_t y = std::abs(delta.y);
+      uint32_t z = std::abs(delta.z);
+      bool xDir = (delta.x >= 0);
+      bool yDir = (delta.y >= 0);
+      bool zDir = (delta.z >= 0);
+      for (int i=0; i<x; i++) {
+        xStepDriver.step(xDir);
+      }
+      for (int i=0; i<y; i++) {
+        yStepDriver.step(yDir);
+      }
+      for (int i=0; i<z; i++) {
+        zStepDriver.step(zDir);
+      }
 
     }
   }
+}
+
+
+
+
+Point StepDriver::getCurrLocation() {
+  return Point::fromSteps(xStepDriver.currStep, yStepDriver.currStep, zStepDriver.currStep);
 }

@@ -169,6 +169,19 @@ uint32_t millis() {
 }
 
 
+uint64_t microseconds() {
+  uint32_t tick = SYST->CVR;
+  uint64_t milli = milliseconds;
+  if (SYST->CVR > tick) {   // Check for CVR reload as it may cause inconsistency between tick and milli
+    tick = SYST->CVR;
+    milli = milliseconds;
+  }
+  uint32_t reload_value = SYST->RVR;
+  tick = reload_value - tick;
+  return (milli * 1000 ) + ( (tick*1000) / reload_value );
+}
+
+
 void delay(uint32_t ms) {
   uint32_t start_tick = SYST->CVR;
   uint32_t end_milli = milliseconds + ms;
