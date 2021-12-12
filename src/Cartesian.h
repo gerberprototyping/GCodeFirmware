@@ -18,10 +18,16 @@ struct Cartesian {
   Cartesian(const volatile Cartesian<T> &c);
   void operator=(const volatile Cartesian<T> &c) volatile;
 
+  template<typename T2>
+  Cartesian(const Cartesian<T2> &c);
+
   T getMagnitude() const;
   bool isNormalized() const;
 
+  Cartesian<T> abs() const;
   Cartesian<T> normalize() const;
+  Cartesian<T> operator+(const T &x) const;
+  Cartesian<T> operator-(const T &x) const;
   Cartesian<T> operator+(const Cartesian<T> &c) const;
   Cartesian<T> operator-(const Cartesian<T> &c) const;
   Cartesian<T> operator*(const double &scalar) const;
@@ -36,7 +42,16 @@ struct Cartesian {
 
 
 template<typename T>
+Cartesian<T> operator+(const T &a, const Cartesian<T> &c);
+
+template<typename T>
+Cartesian<T> operator-(const T &a, const Cartesian<T> &c);
+
+template<typename T>
 Cartesian<T> operator*(const double &scalar, const Cartesian<T> &c);
+
+template<typename T>
+Cartesian<T> operator/(const double &scalar, const Cartesian<T> &c);
 
 
 

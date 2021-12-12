@@ -200,44 +200,39 @@ bool StepDriver::isRunning() {
 
 
 void StepDriver::interruptHandler() {
+  static volatile Cartesian<uint64_t> prevStepTime = Cartesian<uint64_t>(0,0,0);
   if (running) {
     volatile MotionVector* vec;
     bool notEmpty = motionVectorBuffer.peek(&vec);
     if (notEmpty) {
 
-      if (vec->startTime == 0) {
-        vec->startTime = microseconds();
-      }
-
       Point currLocation = Point::fromSteps(xStepDriver.currStep, yStepDriver.currStep, zStepDriver.currStep);
-
       if (currLocation >= (*vec)) {
         motionVectorBuffer.remove(&vec);
         return;
       }
 
-      double t = (microseconds() - vec->startTime);
-      Cartesian<double> deltaMM = vec->velocity;
-      deltaMM *= t / 1000000;
-      Point waypoint = vec->start;
-      waypoint += Point::fromMM(deltaMM);
+      uint64_t usec = microseconds();
 
-      Cartesian<int32_t> delta = (waypoint - currLocation).toSteps();
+      Cartesian<uint64_t> _prevStepTime = prevStepTime;
+      Cartesian<uint64_t> deltaT = usec - _prevStepTime;
+      Velocity v = vec->velocity;
+      Cartesian<uint32_t> pace = 1000000 / (v.abs() * STEPS_PER_MM);
 
-      uint32_t x = std::abs(delta.x);
-      uint32_t y = std::abs(delta.y);
-      uint32_t z = std::abs(delta.z);
-      bool xDir = (delta.x >= 0);
-      bool yDir = (delta.y >= 0);
-      bool zDir = (delta.z >= 0);
-      for (int i=0; i<x; i++) {
+      if (deltaT.x >= pace.x) {
+        bool xDir = v.x >= 0;
         xStepDriver.step(xDir);
+        prevStepTime.x = usec;
       }
-      for (int i=0; i<y; i++) {
+      if (deltaT.y >= pace.y) {
+        bool yDir = v.y >= 0;
         yStepDriver.step(yDir);
+        prevStepTime.y = usec;
       }
-      for (int i=0; i<z; i++) {
+      if (deltaT.z >= pace.z) {
+        bool zDir = v.z >= 0;
         zStepDriver.step(zDir);
+        prevStepTime.z = usec;
       }
 
     }

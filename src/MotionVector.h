@@ -11,7 +11,6 @@ class MotionVector{
   public:
     volatile Point start, end;
     volatile Velocity velocity;
-    volatile uint64_t startTime;
     MotionVector();
     MotionVector(const Point &start, const Point &end, const double &velocity);
     MotionVector(const MotionVector &vec);

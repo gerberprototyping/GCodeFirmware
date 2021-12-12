@@ -7,11 +7,11 @@ MotionVectorBuffer motionVectorBuffer = MotionVectorBuffer();
 
 
 MotionVector::MotionVector()
-  : start(Point()), end(Point()), velocity(Velocity()), startTime(0)
+  : start(Point()), end(Point()), velocity(Velocity())
 {}
 
 MotionVector::MotionVector(const Point &start, const Point &end, const double &_velocity)
-    : start(start), end(end), startTime(0)
+    : start(start), end(end)
 {
   Cartesian<double> path = (end - start).toMM();
   Velocity v = _velocity * (path.normalize());
@@ -19,7 +19,7 @@ MotionVector::MotionVector(const Point &start, const Point &end, const double &_
 }
 
 MotionVector::MotionVector(const MotionVector &vec)
-    : start(vec.start), end(vec.end), velocity(vec.velocity), startTime(vec.startTime)
+    : start(vec.start), end(vec.end), velocity(vec.velocity)
 {}
 
 
@@ -27,7 +27,6 @@ MotionVector::MotionVector(const volatile MotionVector &vec) {
   start = vec.start;
   end = vec.end;
   velocity = vec.velocity;
-  startTime = vec.startTime;
 }
 
 
@@ -35,7 +34,6 @@ void MotionVector::operator=(const volatile MotionVector &vec) volatile {
   start = vec.start;
   end = vec.end;
   velocity = vec.velocity;
-  startTime = vec.startTime;
 }
 
 
