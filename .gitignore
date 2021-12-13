@@ -8,6 +8,9 @@ RTE/*
 *.scvd
 
 
+.vscode/*
+
+
 
 
 #Ignore thumbnails created by Windows

@@ -10,6 +10,14 @@
 
 
 
+#define UART_ECHO                         true
+
+#define GCODE_RX_BUFF_SIZE                256
+#define GCODE_MAX_WORDS_PER_LINE          20
+
+
+
+
 #define SUB_MM_RESOLUTION                 1000
 
 #define STEP_INTERRUPT_PERIOD             1000

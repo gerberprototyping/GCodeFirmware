@@ -16,7 +16,7 @@ int main() {
 
     initClock40();
 
-    GCodeScanner scanner = GCodeScanner( UART(USART2, 9600) );
+    GCode::Scanner scanner = GCode::Scanner( UART(USART2, 9600) );
 
     initLED();
     delay(500);
