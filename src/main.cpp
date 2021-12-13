@@ -6,7 +6,7 @@
 #include "StepDriver.h"
 #include "TimerInterrupt.h"
 #include "uart.h"
-#include "GCodeScanner.h"
+#include "GCodeController.h"
 
 
 int main() {
@@ -16,15 +16,21 @@ int main() {
 
     initClock40();
 
-    GCode::Scanner scanner = GCode::Scanner( UART(USART2, 9600) );
+    UART uart = UART(USART2, 9600);
+    GCode::Controller controller = GCode::Controller();
 
     initLED();
     delay(500);
     setLED(false);
-    scanner.println();
-    scanner.println("Initialized");
+    uart.println();
+    uart.println("Initialization complete");
 
-    GCode::Line line = GCode::Line();
+    controller.run(uart, uart);
+    while(true);
+
+
+
+    /*GCode::Line line = GCode::Line();
     while (true) {
         scanner.getNext(line);
         scanner.print("Recieved line: '");
@@ -42,7 +48,7 @@ int main() {
         }
         scanner.println("'");
         line.makeEmpty();
-    }
+    }*/
     
     //StepDriver::initAll();
     //StepDriver::homeAll();

@@ -3,6 +3,7 @@
 
 #include "Nucleo-L476RG.h"
 #include "IOStream.h"
+#include "Config.h"
 
 #define DMA_CH_SEL_UART_VAL     0b0010
 

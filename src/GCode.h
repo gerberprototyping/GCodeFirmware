@@ -2,6 +2,7 @@
 #define __GCODE_H
 
 #include <cstdint>
+#include <cctype>
 #include "Config.h"
 
 
@@ -11,11 +12,16 @@ namespace GCode {
 
 
     struct Word {
+
         char letter;
         double number;
+
         Word();
         Word(char letter, double number);
         Word(const Word &w);
+
+        bool operator==(const Word &w) const;
+
     };
 
 

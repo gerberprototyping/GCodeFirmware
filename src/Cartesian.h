@@ -65,6 +65,7 @@ struct Point: public Cartesian<int32_t> {
     Point(const Point &p);
     Point(const volatile Point &p);
     void operator=(const volatile Point &p) volatile;
+    static Point zero();
     static Point fromMM(Cartesian<double> c);
     static Point fromMM(double x, double y, double z);
     static Point fromSteps(Cartesian<int32_t> c);
@@ -77,6 +78,9 @@ struct Point: public Cartesian<int32_t> {
     Point operator-(const Point &p) const;
     Point operator*(const double &scalar) const;
     Point operator/(const double &scalar) const;
+
+    static int32_t fromMM(double mm);
+    static int32_t fromSteps(int32_t steps);
 
   private:
 

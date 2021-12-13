@@ -20,6 +20,16 @@ Word::Word(const Word &w)
 {}
 
 
+bool Word::operator==(const Word &w) const {
+    return (std::toupper(letter) == std::toupper(w.letter))
+        && (number == w.number);
+}
+
+
+
+
+
+
 
 
 Line::Line()

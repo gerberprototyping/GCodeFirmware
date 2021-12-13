@@ -4,8 +4,8 @@
 #include <cstdlib>
 #include <cctype>
 #include "Config.h"
+#include "IOStream.h"
 #include "GCode.h"
-#include "uart.h"
 
 
 
@@ -13,22 +13,19 @@
 namespace GCode {
     
     
-    class Scanner: public OutputStream {
+    class Scanner{
 
         public:
 
-            Scanner(UART uart);
+            Scanner(InputStream* istream);
             Line getNext(Line &line);
-
-            void write(uint8_t x);
-            void flush();
         
         private:
 
             Word getNextWord();
         
+            InputStream* istream;
             bool foundLineEnd;
-            UART uart;
             char ibuf[GCODE_RX_BUFF_SIZE];
 
     };

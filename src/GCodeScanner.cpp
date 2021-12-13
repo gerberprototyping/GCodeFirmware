@@ -5,8 +5,8 @@ using namespace GCode;
 
 
 
-Scanner::Scanner(UART uart)
-    : uart(uart), foundLineEnd(false)
+Scanner::Scanner(InputStream* istream)
+    : istream(istream), foundLineEnd(false)
 {}
 
 
@@ -25,16 +25,6 @@ Line Scanner::getNext(Line &line) {
 }
 
 
-void Scanner::write(uint8_t x) {
-    uart.write(x);
-}
-
-
-void Scanner::flush() {
-    uart.flush();
-}
-
-
 Word Scanner::getNextWord() {
     Word word = Word('\0', 0);
 
@@ -49,14 +39,8 @@ Word Scanner::getNextWord() {
         bool whitespace = false;
 
         while (!whitespace && i<(GCODE_RX_BUFF_SIZE-1)) {
-            ibuf[i] = uart.read();
+            ibuf[i] = istream->read();
             foundLineEnd = (ibuf[i] == '\r');
-            #if UART_ECHO
-                uart.write(ibuf[i]);
-                if (foundLineEnd) {
-                    uart.write('\n');
-                }
-            #endif
             if ( std::isspace(ibuf[i]) ) {
                 whitespace = true;
             }

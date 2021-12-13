@@ -5,7 +5,6 @@
 
 Point::Point()
 {
-  int32_t zero = 0;
   x = 0;
   y = 0;
   z = 0;
@@ -31,16 +30,8 @@ void Point::operator=(const volatile Point &p) volatile {
 }
 
 
-Cartesian<double> Point::toMM() const {
-  double _x = ((double)x)/STEPS_PER_MM;
-  double _y = ((double)y)/STEPS_PER_MM;
-  double _z = ((double)z)/STEPS_PER_MM;
-  return Cartesian<double>(_x, _y, _z);
-}
-
-
-Cartesian<int32_t> Point::toSteps() const {
-  return Cartesian<int32_t>(x, y, z);
+Point Point::zero() {
+  return Point(0,0,0);
 }
 
 
@@ -61,6 +52,19 @@ Point Point::fromSteps(Cartesian<int32_t> c) {
 
 Point Point::fromSteps(int32_t x, int32_t y, int32_t z) {
   return Point(x, y, z);
+}
+
+
+Cartesian<double> Point::toMM() const {
+  double _x = ((double)x)/STEPS_PER_MM;
+  double _y = ((double)y)/STEPS_PER_MM;
+  double _z = ((double)z)/STEPS_PER_MM;
+  return Cartesian<double>(_x, _y, _z);
+}
+
+
+Cartesian<int32_t> Point::toSteps() const {
+  return Cartesian<int32_t>(x, y, z);
 }
 
 
@@ -85,6 +89,16 @@ Point Point::operator*(const double &scalar) const {
 
 Point Point::operator/(const double &scalar) const {
   return Point(x/scalar, y/scalar, z/scalar);
+}
+
+
+int32_t Point::fromMM(double mm) {
+  return mm*STEPS_PER_MM;
+}
+
+
+int32_t Point::fromSteps(int32_t steps) {
+  return steps;
 }
 
 
