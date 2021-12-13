@@ -40,6 +40,11 @@ void OutputStream::write(char *buffer, uint32_t n) {
 }
 
 
+void OutputStream::print(char c) {
+  write((uint8_t) c);
+}
+
+
 void OutputStream::print(char *str) {
   for (uint32_t i=0; str[i]!='\0'; i++) {
     write((uint8_t) str[i]);

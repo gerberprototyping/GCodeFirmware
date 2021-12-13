@@ -115,23 +115,29 @@ bool StepDriver::testStepping(double maxSpeed, int tolerance) {
 
 void StepDriver::step(bool dir) {
   //TODO: add limit check
-  currStep += dir ? 1 : -1;
-  stepper1.step(dir);
-  if (dual) stepper2.step(dir);
+  if (homeDir != dir || !checkLimit()) {
+    currStep += dir ? 1 : -1;
+    stepper1.step(dir);
+    if (dual) stepper2.step(dir);
+  }
 }
 
 void StepDriver::stepPos() {
   //TODO: add limit check
-  currStep++;
-  stepper1.stepPos();
-  if (dual) stepper2.stepPos();
+  if (homeDir == NEGATIVE || !checkLimit()) {
+    currStep++;
+    stepper1.stepPos();
+    if (dual) stepper2.stepPos();
+  }
 }
 
 void StepDriver::stepNeg() {
   //TODO: add limit check
-  currStep--;
-  stepper1.stepNeg();
-  if (dual) stepper2.stepNeg();
+  if (homeDir == POSITIVE || !checkLimit()) {
+    currStep--;
+    stepper1.stepNeg();
+    if (dual) stepper2.stepNeg();
+  }
 }
 
 

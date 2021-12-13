@@ -24,7 +24,7 @@ class InputStream {
 
     virtual uint8_t read() = 0;
     int read(uint8_t *buffer, uint32_t n);
-    int read(char *buffer, uint32_t);
+    int read(char *buffer, uint32_t n);
 
 };
 
@@ -38,6 +38,7 @@ class OutputStream {
     virtual void flush() = 0;
     void write(uint8_t *buffer, uint32_t n);
     void write(char *buffer, uint32_t n);
+    void print(char);
     void print(char *str);
     void println(char *str);
     void println();

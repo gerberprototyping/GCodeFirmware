@@ -2,6 +2,14 @@
 #define __CONFIG_H
 
 
+
+
+#define POSITIVE                          true
+#define NEGATIVE                          false
+
+
+
+
 #define SUB_MM_RESOLUTION                 1000
 
 #define STEP_INTERRUPT_PERIOD             1000

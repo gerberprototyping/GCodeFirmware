@@ -6,6 +6,7 @@
 #include "StepDriver.h"
 #include "TimerInterrupt.h"
 #include "uart.h"
+#include "GCodeScanner.h"
 
 
 int main() {
@@ -15,17 +16,39 @@ int main() {
 
     initClock40();
 
-    UART uart(USART2, 9600);
+    GCodeScanner scanner = GCodeScanner( UART(USART2, 9600) );
 
     initLED();
     delay(500);
     setLED(false);
+    scanner.println();
+    scanner.println("Initialized");
+
+    GCode::Line line = GCode::Line();
+    while (true) {
+        scanner.getNext(line);
+        scanner.print("Recieved line: '");
+        uint32_t count = line.getCount();
+        for (uint32_t i=0; i<count; i++) {
+            if (line[i].letter == '\0') {
+                sprintf(str, "[NULL]%f", line[i].number);
+            } else {
+                sprintf(str, "%c%f", line[i].letter, line[i].number);
+            }
+            scanner.print(str);
+            if (i != count-1) {
+                scanner.print(' ');
+            }
+        }
+        scanner.println("'");
+        line.makeEmpty();
+    }
     
-    StepDriver::initAll();
-    StepDriver::homeAll();
+    //StepDriver::initAll();
+    //StepDriver::homeAll();
 
 
-    Point p0 = StepDriver::getCurrLocation();
+    /*Point p0 = StepDriver::getCurrLocation();
     Point p1 = Point::fromMM(20,20,0);
     Point p2 = Point::fromMM(50,30,0);
     Point p3 = Point::fromMM(10,10,0);
@@ -38,9 +61,8 @@ int main() {
     motionVectorBuffer.add(vec3);
     StepDriver::start();
     while(!motionVectorBuffer.isEmpty());
-    //StepDriver::stop();
-    setLED(true);
-    while (true);
+    StepDriver::stop();
+    setLED(true);*/
 
 
     /*uart.println();
