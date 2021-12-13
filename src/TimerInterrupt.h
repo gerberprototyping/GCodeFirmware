@@ -4,6 +4,8 @@
 #include "Nucleo-L476RG.h"
 
 
+
+
 typedef void (*ISR)(void);
 
 
@@ -12,7 +14,10 @@ class TimerInterrupt {
 
   public:
   
-    TimerInterrupt(uint32_t period, ISR interruptHandler);
+    TimerInterrupt();
+
+    void init(uint32_t period, ISR interruptHandler);
+
 
     static void start();
     static void stop();
@@ -26,6 +31,8 @@ class TimerInterrupt {
     static ISR isr;
 
 };
+
+
 
 
 #endif

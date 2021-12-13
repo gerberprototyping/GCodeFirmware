@@ -1,29 +1,39 @@
 #include "StepDriver.h"
 
 
-StepDriver xStepDriver;
-StepDriver yStepDriver;
-StepDriver zStepDriver;
+#if DUAL_DRIVE_X
+  StepDriver xStepDriver = StepDriver(xStepper1, xStepper2, xLimitSw1, xLimitSw2, X_HOME_POS);
+#else
+  StepDriver xStepDriver = StepDriver(xStepper, xLimitSw, X_HOME_POS);
+#endif
+
+#if DUAL_DRIVE_Y
+  StepDriver yStepDriver = StepDriver(yStepper1, yStepper2, yLimitSw1, yLimitSw2, Y_HOME_POS);
+#else
+  StepDriver yStepDriver = StepDriver(yStepper, yLimitSw, Y_HOME_POS);
+#endif
+
+#if DUAL_DRIVE_Z
+  StepDriver zStepDriver = StepDriver(zStepper1, zStepper2, zLimitSw1, zLimitSw2, Z_HOME_POS);
+#else
+  StepDriver zStepDriver = StepDriver(zStepper, zLimitSw, Z_HOME_POS);
+#endif
 
 bool StepDriver::running = false;
+
+TimerInterrupt StepDriver::timerInterrupt = TimerInterrupt();
 
 
 
 
 StepDriver::StepDriver(Stepper stepper, LimitSwitch limitSw, bool homeDir)
-    : stepper1(stepper), limitSw1(limitSw), homeDir(homeDir)
-{
-  dual = false;
-  calibrated = false;
-}
+    : dual(false), homeDir(homeDir), calibrated(false), stepper1(stepper), limitSw1(limitSw)
+{}
 
 
 StepDriver::StepDriver(Stepper stepper1, Stepper stepper2, LimitSwitch limitSw1, LimitSwitch limitSw2, bool homeDir)
-    : stepper1(stepper1), stepper2(stepper2), limitSw1(limitSw1), limitSw2(limitSw2), homeDir(homeDir)
-{
-  dual = true;
-  calibrated = false;
-}
+    : dual(true), homeDir(homeDir), calibrated(false), stepper1(stepper1), stepper2(stepper2), limitSw1(limitSw1), limitSw2(limitSw2)
+{}
 
 
 void StepDriver::home() {
@@ -152,32 +162,15 @@ bool StepDriver::checkLimit() {
 void StepDriver::initAll() {
   LimitSwitch::initAll();
   Stepper::initAll();
-  #if DUAL_DRIVE_X
-    xStepDriver = StepDriver(xStepper1, xStepper2, xLimitSw1, xLimitSw2, X_HOME_POS);
-  #else
-    xStepDriver = StepDriver(xStepper, xLimitSw, X_HOME_POS);
-  #endif
-
-  #if DUAL_DRIVE_Y
-    yStepDriver = StepDriver(yStepper1, yStepper2, yLimitSw1, yLimitSw2, Y_HOME_POS);
-  #else
-    yStepDriver = StepDriver(yStepper, yLimitSw, Y_HOME_POS);
-  #endif
-
-  #if DUAL_DRIVE_Z
-    zStepDriver = StepDriver(zStepper1, zStepper2, zLimitSw1, zLimitSw2, Z_HOME_POS);
-  #else
-    zStepDriver = StepDriver(zStepper, zLimitSw, Z_HOME_POS);
-  #endif
-  timerInterrupt = TimerInterrupt(STEP_INTERRUPT_PERIOD, &StepDriver::interruptHandler);
+  timerInterrupt.init(STEP_INTERRUPT_PERIOD, &StepDriver::interruptHandler);
 }
 
 
 void StepDriver::homeAll() {
   if (!running) {
+    zStepDriver.home();
     xStepDriver.home();
     yStepDriver.home();
-    zStepDriver.home();
   }
 }
 
@@ -212,8 +205,10 @@ void StepDriver::interruptHandler() {
     bool notEmpty = motionVectorBuffer.peek(&vec);
     if (notEmpty) {
 
+      MotionVector _vec = *vec;
+
       Point currLocation = Point::fromSteps(xStepDriver.currStep, yStepDriver.currStep, zStepDriver.currStep);
-      if (currLocation >= (*vec)) {
+      if (currLocation >= _vec) {
         motionVectorBuffer.remove(&vec);
         return;
       }
@@ -222,21 +217,21 @@ void StepDriver::interruptHandler() {
 
       Cartesian<uint64_t> _prevStepTime = prevStepTime;
       Cartesian<uint64_t> deltaT = usec - _prevStepTime;
-      Velocity v = vec->velocity;
+      Velocity v = _vec.velocity;
       Cartesian<uint32_t> pace = 1000000 / (v.abs() * STEPS_PER_MM);
 
       if (deltaT.x >= pace.x) {
-        bool xDir = v.x >= 0;
+        bool xDir = (v.x >= 0);
         xStepDriver.step(xDir);
         prevStepTime.x = usec;
       }
       if (deltaT.y >= pace.y) {
-        bool yDir = v.y >= 0;
+        bool yDir = (v.y >= 0);
         yStepDriver.step(yDir);
         prevStepTime.y = usec;
       }
       if (deltaT.z >= pace.z) {
-        bool zDir = v.z >= 0;
+        bool zDir = (v.z >= 0);
         zStepDriver.step(zDir);
         prevStepTime.z = usec;
       }

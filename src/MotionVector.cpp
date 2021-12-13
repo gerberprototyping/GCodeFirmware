@@ -1,7 +1,7 @@
 #include "MotionVector.h"
 
 
-MotionVectorBuffer motionVectorBuffer = MotionVectorBuffer();
+volatile MotionVectorBuffer motionVectorBuffer = MotionVectorBuffer();
 
 
 
@@ -75,17 +75,17 @@ MotionVectorBuffer::MotionVectorBuffer() {
 }
 
 
-bool MotionVectorBuffer::isEmpty() {
+bool MotionVectorBuffer::isEmpty() volatile {
   return empty;
 }
 
 
-bool MotionVectorBuffer::isFull() {
+bool MotionVectorBuffer::isFull() volatile {
   return !empty;
 }
 
 
-uint32_t MotionVectorBuffer::getSize() {
+uint32_t MotionVectorBuffer::getSize() volatile {
   uint32_t size = 0;
   if (!empty) {
     if (head < tail) {
@@ -98,7 +98,7 @@ uint32_t MotionVectorBuffer::getSize() {
 }
 
 
-bool MotionVectorBuffer::add(const MotionVector &vec) {
+bool MotionVectorBuffer::add(const MotionVector &vec) volatile {
   bool success = false;
   if (head != tail || empty) {
     buff[tail] = vec;
@@ -113,7 +113,7 @@ bool MotionVectorBuffer::add(const MotionVector &vec) {
 }
 
 
-bool MotionVectorBuffer::remove(volatile MotionVector** vec) {
+bool MotionVectorBuffer::remove(volatile MotionVector** vec) volatile {
   bool success = false;
   if (!empty) {
     success = true;
@@ -130,7 +130,7 @@ bool MotionVectorBuffer::remove(volatile MotionVector** vec) {
 }
 
 
-bool MotionVectorBuffer::peek(volatile MotionVector** vec) {
+bool MotionVectorBuffer::peek(volatile MotionVector** vec) volatile {
   bool success = false;
   if (!empty) {
     success = true;

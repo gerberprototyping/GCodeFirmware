@@ -20,6 +20,8 @@ class LimitSwitch {
     gpio_t pin;
     bool normally_open;
 
+    void init();
+
 };
 
 

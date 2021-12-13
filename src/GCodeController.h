@@ -23,11 +23,12 @@ namespace GCode {
 
         private:
 
-            Point pathEnd;
-            double feedrate;
+            volatile Point pathEnd;
+            volatile double feedrate;
 
             void G0(Line &line);
             void G1(Line &line);
+            void G28(Line &line);
 
     };
 

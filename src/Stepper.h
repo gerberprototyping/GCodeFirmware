@@ -24,6 +24,8 @@ class Stepper {
 
         gpio_t step_pin, dir_pin;
 
+        void init();
+
 };
 
 

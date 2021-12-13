@@ -44,7 +44,7 @@ Word Scanner::getNextWord() {
             if ( std::isspace(ibuf[i]) ) {
                 whitespace = true;
             }
-            else if (std::isalnum(ibuf[i]) || ibuf[i] == '.') {
+            else if (std::isalnum(ibuf[i]) || ibuf[i] == '.' || ibuf[i] == '-') {
                 i++;
             }
         }

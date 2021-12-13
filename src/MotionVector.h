@@ -28,13 +28,13 @@ class MotionVectorBuffer {
 
     MotionVectorBuffer();
 
-    bool isEmpty();
-    bool isFull();
-    uint32_t getSize();
+    bool isEmpty() volatile;
+    bool isFull() volatile;
+    uint32_t getSize() volatile;
 
-    bool add(const MotionVector &vec);
-    bool remove(volatile MotionVector** vec);
-    bool peek(volatile MotionVector** vec);
+    bool add(const MotionVector &vec) volatile;
+    bool remove(volatile MotionVector** vec) volatile;
+    bool peek(volatile MotionVector** vec) volatile;
 
   private:
 
@@ -45,7 +45,7 @@ class MotionVectorBuffer {
 
 };
 
-extern MotionVectorBuffer motionVectorBuffer;
+extern volatile MotionVectorBuffer motionVectorBuffer;
 
 
 #endif

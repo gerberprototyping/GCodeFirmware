@@ -7,8 +7,11 @@ void emptyFunc() {}
 ISR TimerInterrupt::isr = &emptyFunc;
 
 
-TimerInterrupt::TimerInterrupt(uint32_t period, ISR interruptHandler)
-{
+TimerInterrupt::TimerInterrupt() {
+}
+
+
+void TimerInterrupt::init(uint32_t period, ISR interruptHandler) {
   if (!initialized) {
     initialized = true;
     isr = interruptHandler;
