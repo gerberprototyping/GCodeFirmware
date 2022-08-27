@@ -1,0 +1,182 @@
+#ifndef __CARTESIAN_H_OLD
+#define __CARTESIAN_H_OLD
+
+#include <iostream>
+#include <cmath>
+#include <cstdint>
+#include <atomic>
+#include "Config.h"
+
+
+
+
+template<class Derived> std::ostream& operator<<(std::ostream &out, const Derived &C);
+
+template<typename T, class Derived>
+class Cartesian {
+
+    public:
+
+        Cartesian() {}
+        Cartesian(const T &x, const T &y, const T &z);
+        Cartesian(const Derived &C);
+
+        template<typename T2, class Derived2> Cartesian(const Cartesian<T2, Derived2> &C);
+        template<class Derived2> Cartesian(const T &magnitude, const Derived2 &direction);
+
+        T getX() const;
+        T getY() const;
+        T getZ() const;
+        void setX(T &val);
+        void setY(T &val);
+        void setZ(T &val);
+        T getMagnitude() const;
+        bool isNormalized() const;
+
+        Derived abs() const;
+        Derived normalize() const;
+        Derived operator+(const Derived &C) const;
+        Derived operator-(const Derived &C) const;
+        Derived operator+(const T &scalar) const;
+        Derived operator-(const T &scalar) const;
+        Derived operator*(const T &scalar) const;
+        Derived operator/(const T &scalar) const;
+
+        void operator+=(const Derived &C);
+        void operator-=(const Derived &C);
+        void operator+=(const T &scalar);
+        void operator-=(const T &scalar);
+        void operator*=(const T &scalar);
+        void operator/=(const T &scalar);
+
+        bool operator==(const Derived &C) const;
+
+        template<class _Derived>
+        friend std::ostream& operator<<(std::ostream &out, const _Derived &C);
+        
+        static Derived zero();
+
+        friend class Cartesian;
+    
+    protected:
+
+        T x, y, z;
+
+};
+
+/*template<typename T, class Derived>
+Derived operator+(const T &scalar, const Derived &C);
+
+template<typename T, class Derived>
+Derived operator-(const T &scalar, const Derived &C);
+
+template<typename T, class Derived>
+Derived operator*(const double &scalar, const Derived &C);
+
+template<typename T, class Derived>
+Derived operator/(const double &scalar, const Derived &C);*/
+
+
+
+
+
+
+
+
+template<typename T>
+class CartesianGeneric: public Cartesian<T, CartesianGeneric<T>> {
+
+    public:
+
+        using Cartesian<T, CartesianGeneric<T>>::Cartesian;
+        
+        template<typename T2>
+        CartesianGeneric(CartesianGeneric<T2> &C);
+
+};
+
+
+using CartesianInt = CartesianGeneric<int64_t>;
+using CartesianDouble = CartesianGeneric<double>;
+using CartesianBool = CartesianGeneric<bool>;
+
+using AtomicCartesianInt = CartesianGeneric<std::atomic<int64_t>>;
+using AtomicCartesianDouble = CartesianGeneric<std::atomic<double>>;
+using AtomicCartesianBool = CartesianGeneric<std::atomic<bool>>;
+
+
+
+
+template<typename T>
+class AbstractVelocity: public Cartesian<T, AbstractVelocity<T>> {
+
+    public:
+
+        using Cartesian<T, AbstractVelocity>::Cartesian;
+
+};
+
+using Velocity = AbstractVelocity<double>;
+using AtomicVelocity = AbstractVelocity<std::atomic<double>>;
+
+
+
+
+template<typename T>
+class AbstractPoint: public Cartesian<T, AbstractPoint<T>> {
+
+    public:
+
+        AbstractPoint() {}
+        AbstractPoint(T _x, T _y, T _z);
+        AbstractPoint(const AbstractPoint &C);
+
+
+        static AbstractPoint fromMM(CartesianGeneric<double> &C);
+        static AbstractPoint fromMM(double _x, double _y, double _z);
+        static AbstractPoint fromSteps(CartesianGeneric<int64_t> &c);
+        static AbstractPoint fromSteps(int64_t _x, int64_t _y, int64_t _z);
+
+        CartesianDouble toMM() const;
+        CartesianInt toSteps() const;
+
+        double getXMM() const;
+        double getYMM() const;
+        double getZMM() const;
+        int64_t getXSteps() const;
+        int64_t getYSteps() const;
+        int64_t getZSteps() const;
+        void setXMM(double _x);
+        void setYMM(double _y);
+        void setZMM(double _Z);
+        void setXSteps(int64_t _x);
+        void setYSteps(int64_t _y);
+        void setZSteps(int64_t _z);
+        
+        friend CartesianGeneric<T>;
+
+    protected:
+
+        using Cartesian<T, AbstractPoint<T>>::getX;
+        using Cartesian<T, AbstractPoint<T>>::getY;
+        using Cartesian<T, AbstractPoint<T>>::getZ;
+        using Cartesian<T, AbstractPoint<T>>::setX;
+        using Cartesian<T, AbstractPoint<T>>::setY;
+        using Cartesian<T, AbstractPoint<T>>::setZ;
+
+        using Cartesian<T, AbstractPoint<T>>::x;
+        using Cartesian<T, AbstractPoint<T>>::y;
+        using Cartesian<T, AbstractPoint<T>>::z;
+
+};
+
+using Point = AbstractPoint<int64_t>;
+using AtomicPoint = AbstractPoint<std::atomic<int64_t>>;
+
+
+
+
+#include "Cartesian_imp.hpp"
+
+
+#endif

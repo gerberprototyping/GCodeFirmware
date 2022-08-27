@@ -3,12 +3,15 @@
 
 #include <cmath>
 #include <algorithm>
+#include <atomic>
+
 #include "Config.h"
 #include "Stepper.h"
 #include "LimitSwitch.h"
 #include "TimerInterrupt.h"
 #include "MotionVector.h"
 #include "Cartesian.h"
+#include "Concurrent.h"
 
 #define CALIB_PACE      1000
 #define BACKUP_STEPS    (1*STEPS_PER_MM)
@@ -48,8 +51,8 @@ class StepDriver {
     bool dual;
     bool homeDir;
 
-    bool calibrated;
-    volatile int32_t currStep;
+    volatile bool calibrated;
+    volatile int64_t currStep;
 
     Stepper stepper1;
     Stepper stepper2;
@@ -57,7 +60,7 @@ class StepDriver {
     LimitSwitch limitSw2;
 
 
-    static bool running;
+    static volatile bool running;
     static TimerInterrupt timerInterrupt;
 
 };

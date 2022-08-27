@@ -1,0 +1,65 @@
+#ifndef __MOTION_VECTOR_H_OLD
+#define __MOTION_VECTOR_H_OLD
+
+#include <stdint.h>
+#include <atomic>
+#include "Config.h"
+#include "Cartesian.h"
+
+
+template<class PointType, class VelocityType>
+class AbstractMotionVector{
+
+    public:
+        
+        AbstractMotionVector();
+        AbstractMotionVector(const PointType &start, const PointType &end, const double &velocity);
+        AbstractMotionVector(const AbstractMotionVector &vec);
+
+        template<class PointType2, class VelocityType2>
+        AbstractMotionVector(const AbstractMotionVector<PointType2, VelocityType2> &vec);
+
+        PointType getStart() const;
+        PointType getEnd() const;
+        VelocityType getVelocity() const;
+
+        friend bool operator>=(const PointType &curr, const AbstractMotionVector<PointType, VelocityType> vec);
+
+    private:
+        PointType start, end;
+        VelocityType velocity;
+
+};
+
+using MotionVector = AbstractMotionVector<Point, Velocity>;
+using AtomicMotionVector = AbstractMotionVector<AtomicPoint, AtomicVelocity>;
+
+
+// FIFO buffer for holding MotionVectors
+class MotionVectorBuffer {
+
+  public:
+
+    MotionVectorBuffer();
+
+    bool isEmpty();
+    bool isFull();
+    uint32_t getSize();
+
+    bool add(const MotionVector &vec);
+    bool remove(AtomicMotionVector** vec);
+    bool peek(AtomicMotionVector** vec);
+
+  private:
+
+    AtomicMotionVector buff[STEP_INSTRUCTION_BUFFER_SIZE];
+    std::atomic<uint32_t> head;
+    std::atomic<uint32_t> tail;
+    std::atomic<bool> empty;
+
+};
+
+extern MotionVectorBuffer motionVectorBuffer;
+
+
+#endif

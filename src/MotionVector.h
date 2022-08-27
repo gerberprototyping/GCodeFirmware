@@ -1,51 +1,96 @@
 #ifndef __MOTION_VECTOR_H
 #define __MOTION_VECTOR_H
 
-#include <stdint.h>
+#include <cstdint>
+#include <atomic>
+#include <array>
+
 #include "Config.h"
 #include "Cartesian.h"
+#include "Concurrent.h"
 
 
-// Volatility built into class
-class MotionVector{
-  public:
-    volatile Point start, end;
-    volatile Velocity velocity;
-    MotionVector();
-    MotionVector(const Point &start, const Point &end, const double &velocity);
-    MotionVector(const MotionVector &vec);
-    MotionVector(const volatile MotionVector &vec);
-    void operator=(const volatile MotionVector &vec) volatile;
+
+
+// Forward declare MotionVector and MotionVectorBuffer
+class MotionVector;
+class MotionVectorBuffer;
+
+class AtomicMotionVector {
+
+    public:
+
+        AtomicMotionVector();
+        AtomicMotionVector(const AtomicPoint &start, const AtomicPoint &end, const AtomicVelocity &velocity);
+        void store(const MotionVector &vec) volatile;
+        MotionVector load() volatile;
+
+    private:
+
+        volatile Semaphore lock;
+        volatile AtomicPoint start;
+        volatile AtomicPoint end;
+        volatile AtomicVelocity velocity;
+
 };
 
-bool operator>=(const Point &curr, const MotionVector vec);
+class MotionVector {
+
+    public:
+
+        MotionVector();
+        MotionVector(const Point &start, const Point &end, const double &velocity);
+        MotionVector(const MotionVector &vec);
+
+        Point getStart() const;
+        Point getEnd() const;
+        Velocity getVelocity() const;
+
+        friend bool operator>=(const Point &curr, const MotionVector &vec);
+
+        friend class AtomicMotionVector;
+        friend class MotionVectorBuffer;
+
+    private:
+
+        Point start;
+        Point end;
+        Velocity velocity;
+
+};
+
+bool operator>=(const Point &curr, const MotionVector &vec);
 
 
-// FIFO buffer for holding MotionVectors
+
+
+/*
+ * FIFO buffer to hold future movements
+ */
 class MotionVectorBuffer {
 
-  public:
+    public:
 
-    MotionVectorBuffer();
+        MotionVectorBuffer();
 
-    bool isEmpty() volatile;
-    bool isFull() volatile;
-    uint32_t getSize() volatile;
+        bool isEmpty() const;
+        bool isFull() const;
+        uint32_t getSize() const;
 
-    bool add(const MotionVector &vec) volatile;
-    bool remove(volatile MotionVector** vec) volatile;
-    bool peek(volatile MotionVector** vec) volatile;
+        bool add(const MotionVector &vec);
+        bool remove(MotionVector* vec);
+        bool peek(MotionVector* vec);
 
-  private:
+    private:
 
-    volatile MotionVector buff[STEP_INSTRUCTION_BUFFER_SIZE];
-    volatile uint32_t head = 0;
-    volatile uint32_t tail = 0;
-    volatile bool empty = true;
+        AtomicMotionVector buff[STEP_INSTRUCTION_BUFFER_SIZE];
+        std::atomic<uint32_t> head;
+        std::atomic<uint32_t> tail;
+        std::atomic<bool> empty;
 
 };
 
-extern volatile MotionVectorBuffer motionVectorBuffer;
+extern MotionVectorBuffer motionVectorBuffer;
 
 
-#endif
+#endif // __MOTION_VECTOR_H

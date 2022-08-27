@@ -1,0 +1,256 @@
+
+
+
+
+template<typename T, class Derived>
+Cartesian<T, Derived>::Cartesian(const T &_x, const T &_y, const T &_z)
+    : x(_x), y(_y), z(_z)
+{}
+
+
+template<typename T, class Derived>
+Cartesian<T, Derived>::Cartesian(const Derived &C)
+    : x(C.x), y(C.y), z(C.z)
+{}
+
+
+template<typename T, class Derived>
+template<typename T2, class Derived2>
+Cartesian<T, Derived>::Cartesian(const Cartesian<T2, Derived2> &C)
+    : x(C.getX()), y(C.getY()), z(C.getZ())
+{}
+
+
+template<typename T, class Derived>
+template<class Derived2>
+Cartesian<T, Derived>::Cartesian(const T &magnitude, const Derived2 &direction) {
+    double dir_m = direction.getMagnitude();
+    x = magnitude * (direction.getX() / dir_m);
+    y = magnitude * (direction.getY() / dir_m);
+    z = magnitude * (direction.getZ() / dir_m);
+}
+
+
+
+template<typename T, class Derived>
+inline void Cartesian<T, Derived>::setX(T &val) {
+    x = val;
+}
+
+
+template<typename T, class Derived>
+inline void Cartesian<T, Derived>::setY(T &val) {
+    y = val;
+}
+
+
+template<typename T, class Derived>
+inline void Cartesian<T, Derived>::setZ(T &val) {
+    z = val;
+}
+
+
+template<typename T, class Derived>
+inline T Cartesian<T, Derived>::getX() const {
+    return x;
+}
+
+
+template<typename T, class Derived>
+inline T Cartesian<T, Derived>::getY() const {
+    return y;
+}
+
+
+template<typename T, class Derived>
+inline T Cartesian<T, Derived>::getZ() const {
+    return z;
+}
+
+
+template<typename T, class Derived>
+inline T Cartesian<T, Derived>::getMagnitude() const {
+    return std::sqrt( std::pow(x,2) + std::pow(y,2) + std::pow(z,2) );
+}
+
+
+template<typename T, class Derived>
+inline bool Cartesian<T, Derived>::isNormalized() const{
+    T mag = getMagnitude();
+    return (mag >= 0.9999) && (mag <= 1.0001);
+}
+
+
+
+
+template<typename T, class Derived>
+inline Derived Cartesian<T, Derived>::abs() const {
+    return Derived(std::abs(x), std::abs(y), std::abs(z));
+}
+
+
+template<typename T, class Derived>
+inline Derived Cartesian<T, Derived>::normalize() const {
+    return operator/(getMagnitude());
+}
+
+
+template<typename T, class Derived>
+inline Derived Cartesian<T, Derived>::operator+(const Derived &C) const {
+    return Derived(x+C.x, y+C.y, z+C.z);
+}
+
+
+template<typename T, class Derived>
+inline Derived Cartesian<T, Derived>::operator-(const Derived &C) const {
+    return Derived(x-C.x, y-C.y, z-C.z);
+}
+
+
+template<typename T, class Derived>
+inline Derived Cartesian<T, Derived>::operator+(const T &scalar) const {
+    return Derived(x+scalar, y+scalar, z+scalar);
+}
+
+
+template<typename T, class Derived>
+inline Derived Cartesian<T, Derived>::operator-(const T &scalar) const {
+    return Derived(x-scalar, y-scalar, z-scalar);
+}
+
+
+template<typename T, class Derived>
+inline Derived Cartesian<T, Derived>::operator*(const T &scalar) const {
+    return Derived(x*scalar, y*scalar, z*scalar);
+}
+
+
+template<typename T, class Derived>
+inline Derived Cartesian<T, Derived>::operator/(const T &scalar) const {
+    return Derived(x/scalar, y/scalar, z/scalar);
+}
+
+
+
+
+template<typename T, class Derived>
+inline void Cartesian<T, Derived>::operator+=(const Derived &C) {
+    x += C.x;
+    y += C.y;
+    z += C.z;
+}
+
+
+template<typename T, class Derived>
+inline void Cartesian<T, Derived>::operator-=(const Derived &C) {
+    x -= C.x;
+    y -= C.y;
+    z -= C.z;
+}
+
+
+template<typename T, class Derived>
+inline void Cartesian<T, Derived>::operator+=(const T &scalar) {
+    x += scalar;
+    y += scalar;
+    z += scalar;
+}
+
+template<typename T, class Derived>
+inline void Cartesian<T, Derived>::operator-=(const T &scalar) {
+    x -= scalar;
+    y -= scalar;
+    z -= scalar;
+}
+
+
+template<typename T, class Derived>
+inline void Cartesian<T, Derived>::operator*=(const T &scalar) {
+    x *= scalar;
+    y *= scalar;
+    z *= scalar;
+}
+
+
+template<typename T, class Derived>
+inline void Cartesian<T, Derived>::operator/=(const T &scalar) {
+    x /= scalar;
+    y /= scalar;
+    z /= scalar;
+}
+
+
+
+
+template<typename T, class Derived>
+inline bool Cartesian<T, Derived>::operator==(const Derived &C) const {
+    return (x == C.x) && (y == C.y) && (z == C.z);
+}
+
+
+
+
+template<typename T, class Derived>
+inline Derived Cartesian<T, Derived>::zero() {
+    return Derived(0,0,0);
+}
+
+
+
+
+/*template<typename T, class Derived>
+inline Derived operator+(const T &scalar, const Derived &C) {
+    return Derived(scalar+(C.getX()), scalar+(C.getY()), scalar+(C.getZ()));
+}
+
+
+template<typename T, class Derived>
+inline Derived operator-(const T &scalar, const Derived &C) {
+    return Derived(scalar-(C.getX()), scalar-(C.getY()), scalar-(C.getZ()));
+}
+
+
+template<typename T, class Derived>
+inline Derived operator*(const double &scalar, const Derived &C) {
+    return Derived(scalar*(C.getX()), scalar*(C.getY()), scalar*(C.getZ()));
+}
+
+
+template<typename T, class Derived>
+inline Derived operator/(const double &scalar, const Derived &C) {
+    return Derived(scalar/(C.getX()), scalar/(C.getY()), scalar/(C.getZ()));
+}*/
+
+
+template<class _Derived>
+std::ostream& operator<<(std::ostream &out, const _Derived &C) {
+    char str1[] = "[x=";
+    out.write(str1, sizeof(str1)-1);
+    out << C.x;
+
+    char str2[] = ",y=";
+    out.write(str2, sizeof(str2)-1);
+    out << C.y;
+
+    char str3[] = ",z=";
+    out.write(str3, sizeof(str3)-1);
+    out << C.z;
+
+    char str4[] = "]";
+    out.write(str4, sizeof(str4)-1);
+    return out;
+}
+
+
+
+
+
+
+
+
+template<typename T>
+template<class T2>
+CartesianGeneric<T>::CartesianGeneric(CartesianGeneric<T2> &C)
+    : Cartesian<T, CartesianGeneric<T>>::Cartesian(C.x, C.y, C.z)
+{}
+

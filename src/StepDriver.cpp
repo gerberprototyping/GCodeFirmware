@@ -19,7 +19,7 @@
   StepDriver zStepDriver = StepDriver(zStepper, zLimitSw, Z_HOME_POS);
 #endif
 
-bool StepDriver::running = false;
+volatile bool StepDriver::running = false;
 
 TimerInterrupt StepDriver::timerInterrupt = TimerInterrupt();
 
@@ -125,29 +125,29 @@ bool StepDriver::testStepping(double maxSpeed, int tolerance) {
 
 void StepDriver::step(bool dir) {
   //TODO: add limit check
-  if (homeDir != dir || !checkLimit()) {
+  //if (homeDir != dir || !checkLimit()) {
     currStep += dir ? 1 : -1;
     stepper1.step(dir);
     if (dual) stepper2.step(dir);
-  }
+  //}
 }
 
 void StepDriver::stepPos() {
   //TODO: add limit check
-  if (homeDir == NEGATIVE || !checkLimit()) {
+  //if (homeDir == NEGATIVE || !checkLimit()) {
     currStep++;
     stepper1.stepPos();
     if (dual) stepper2.stepPos();
-  }
+  //}
 }
 
 void StepDriver::stepNeg() {
   //TODO: add limit check
-  if (homeDir == POSITIVE || !checkLimit()) {
+  //if (homeDir == POSITIVE || !checkLimit()) {
     currStep--;
     stepper1.stepNeg();
     if (dual) stepper2.stepNeg();
-  }
+  //}
 }
 
 
@@ -199,41 +199,41 @@ bool StepDriver::isRunning() {
 
 
 void StepDriver::interruptHandler() {
-  static volatile Cartesian<uint64_t> prevStepTime = Cartesian<uint64_t>(0,0,0);
+  static AtomicCartesianInt atomic_prevStepTime = AtomicCartesianInt();
   if (running) {
-    volatile MotionVector* vec;
-    bool notEmpty = motionVectorBuffer.peek(&vec);
-    if (notEmpty) {
+    MotionVector motionVec = MotionVector();
+    if (motionVectorBuffer.peek(&motionVec)) {
 
-      MotionVector _vec = *vec;
+      Point currLocation = getCurrLocation();
+      if (currLocation >= motionVec) {
+        motionVectorBuffer.remove(&motionVec);
+      } else {
 
-      Point currLocation = Point::fromSteps(xStepDriver.currStep, yStepDriver.currStep, zStepDriver.currStep);
-      if (currLocation >= _vec) {
-        motionVectorBuffer.remove(&vec);
-        return;
-      }
+        int64_t usec = microseconds();
 
-      uint64_t usec = microseconds();
+        CartesianInt prevStepTime = atomic_prevStepTime.load();           // make local copy of atomic object
+        CartesianInt deltaT = CartesianInt(usec) - prevStepTime;
+        Velocity velocity = motionVec.getVelocity();
+        CartesianInt pace = 60000000 / (velocity.abs() * STEPS_PER_MM);   // from mm/min to usec/step
 
-      Cartesian<uint64_t> _prevStepTime = prevStepTime;
-      Cartesian<uint64_t> deltaT = usec - _prevStepTime;
-      Velocity v = _vec.velocity;
-      Cartesian<uint32_t> pace = 1000000 / (v.abs() * STEPS_PER_MM);
+        if (deltaT.getX() >= pace.getX()) {
+          bool xDir = (velocity.getX() >= 0);
+          xStepDriver.step(xDir);
+          prevStepTime.setX(usec);
+        }
+        if (deltaT.getY() >= pace.getY()) {
+          bool yDir = (velocity.getY() >= 0);
+          yStepDriver.step(yDir);
+          prevStepTime.setY(usec);
+        }
+        if (deltaT.getZ() >= pace.getZ()) {
+          bool zDir = (velocity.getZ() >= 0);
+          zStepDriver.step(zDir);
+          prevStepTime.setZ(usec);
+        }
 
-      if (deltaT.x >= pace.x) {
-        bool xDir = (v.x >= 0);
-        xStepDriver.step(xDir);
-        prevStepTime.x = usec;
-      }
-      if (deltaT.y >= pace.y) {
-        bool yDir = (v.y >= 0);
-        yStepDriver.step(yDir);
-        prevStepTime.y = usec;
-      }
-      if (deltaT.z >= pace.z) {
-        bool zDir = (v.z >= 0);
-        zStepDriver.step(zDir);
-        prevStepTime.z = usec;
+        atomic_prevStepTime.store(prevStepTime);                          // write back to atomic object
+
       }
 
     }

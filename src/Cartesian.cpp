@@ -1,155 +1,60 @@
 #include "Cartesian.h"
 
 
+/***********************************************************
+ * Point
+ **********************************************************/
 
-
-Point::Point()
-{
-  x = 0;
-  y = 0;
-  z = 0;
+Point Point::fromMM(CartesianDouble &C) {
+    Point p;
+    p._x = C.getX()*STEPS_PER_MM;
+    p._y = C.getY()*STEPS_PER_MM;
+    p._z = C.getZ()*STEPS_PER_MM;
+    return p;
 }
-
-
-Point::Point(const Point &p)
-    : Cartesian(p)
-{ }
-
-
-Point::Point(const volatile Point &p) {
-  x = *((volatile int32_t*)&p.x);
-  y = *((volatile int32_t*)&p.y);
-  z = *((volatile int32_t*)&p.z);
-}
-
-
-void Point::operator=(const volatile Point &p) volatile {
-  *((volatile int32_t*)&x) = *((volatile int32_t*)&p.x);
-  *((volatile int32_t*)&y) = *((volatile int32_t*)&p.y);
-  *((volatile int32_t*)&z) = *((volatile int32_t*)&p.z);
-}
-
-
-Point Point::zero() {
-  return Point(0,0,0);
-}
-
-
-Point Point::fromMM(Cartesian<double> c) {
-  return Point(c.x*STEPS_PER_MM, c.y*STEPS_PER_MM, c.z*STEPS_PER_MM);
-}
-
 
 Point Point::fromMM(double x, double y, double z) {
-  return Point(x*STEPS_PER_MM, y*STEPS_PER_MM, z*STEPS_PER_MM);
+    Point p;
+    p._x = x * STEPS_PER_MM;
+    p._y = y * STEPS_PER_MM;
+    p._z = z * STEPS_PER_MM;
+    return p;
+}
+
+Point Point::fromSteps(CartesianInt &C) {
+    return Point(C.getX(), C.getY(), C.getZ());
+}
+
+Point Point::fromSteps(int64_t x, int64_t y, int64_t z) {
+    return Point(x, y, z);
 }
 
 
-Point Point::fromSteps(Cartesian<int32_t> c) {
-  return Point(c.x*STEPS_PER_MM, c.y*STEPS_PER_MM, c.z*STEPS_PER_MM);
+CartesianDouble Point::toMM() const {
+    // do algebra using doubles
+    CartesianDouble mm = CartesianDouble(_x, _y, _z);
+    mm /= STEPS_PER_MM;
+    return mm;
+}
+
+CartesianInt Point::toSteps() const {
+    return CartesianInt(_x, _y, _z);
+}
+
+CartesianInt Point::getRaw() const {
+    return CartesianInt(_x, _y, _z);
 }
 
 
-Point Point::fromSteps(int32_t x, int32_t y, int32_t z) {
-  return Point(x, y, z);
-}
-
-
-Cartesian<double> Point::toMM() const {
-  double _x = ((double)x)/STEPS_PER_MM;
-  double _y = ((double)y)/STEPS_PER_MM;
-  double _z = ((double)z)/STEPS_PER_MM;
-  return Cartesian<double>(_x, _y, _z);
-}
-
-
-Cartesian<int32_t> Point::toSteps() const {
-  return Cartesian<int32_t>(x, y, z);
-}
-
-
-Point::Point(const int32_t &x, const int32_t &y, const int32_t &z)
-    : Cartesian(x,y,z)
-{}
-
-
-Point Point::operator+(const Point &p) const {
-  return Point(x+p.x, y+p.y, z+p.z);
-}
-
-
-Point Point::operator-(const Point &p) const {
-  return Point(x-p.x, y-p.y, z-p.z);
-}
-
-
-Point Point::operator*(const double &scalar) const {
-  return Point(x*scalar, y*scalar, z*scalar);
-}
-
-Point Point::operator/(const double &scalar) const {
-  return Point(x/scalar, y/scalar, z/scalar);
-}
-
-
-int32_t Point::fromMM(double mm) {
-  return mm*STEPS_PER_MM;
-}
-
-
-int32_t Point::fromSteps(int32_t steps) {
-  return steps;
-}
-
-
-
-
-
-
-
-
-Velocity::Velocity()
-    : Cartesian(0,0,0)
-{}
-
-
-Velocity::Velocity(const Cartesian<double> &vec)
-    : Cartesian(vec)
-{ }
-
-
-Velocity::Velocity(const Cartesian<int32_t> &vec)
-{
-  x = vec.x;
-  y = vec.y;
-  z = vec.z;
-}
-
-
-Velocity::Velocity(const volatile Cartesian<double> &vec) {
-  x = *((volatile double*)&vec.x);
-  y = *((volatile double*)&vec.y);
-  z = *((volatile double*)&vec.z);
-}
-
-
-Velocity::Velocity(const volatile Cartesian<int32_t> &vec) {
-  x = *((volatile int32_t*)&vec.x);
-  y = *((volatile int32_t*)&vec.y);
-  z = *((volatile int32_t*)&vec.z);
-}
-
-
-void Velocity::operator=(const volatile Cartesian<double> &vec) volatile {
-  *((volatile double*)&x) = *((volatile double*)&vec.x);
-  *((volatile double*)&y) = *((volatile double*)&vec.y);
-  *((volatile double*)&z) = *((volatile double*)&vec.z);
-}
-
-
-void Velocity::operator=(const volatile Cartesian<int32_t> &vec) volatile  {
-  *((volatile int32_t*)&x) = *((volatile int32_t*)&vec.x);
-  *((volatile int32_t*)&y) = *((volatile int32_t*)&vec.y);
-  *((volatile int32_t*)&z) = *((volatile int32_t*)&vec.z);
-}
-
+double Point::getXMM() const { return _x / STEPS_PER_MM; }
+double Point::getYMM() const { return _y / STEPS_PER_MM; }
+double Point::getZMM() const { return _z / STEPS_PER_MM; }
+int64_t Point::getXSteps() const { return _x; }
+int64_t Point::getYSteps() const { return _y; }
+int64_t Point::getZSteps() const { return _z; }
+void Point::setXMM(double x) { _x = x * STEPS_PER_MM; }
+void Point::setYMM(double y) { _y = y * STEPS_PER_MM; }
+void Point::setZMM(double z) { _z = z * STEPS_PER_MM; }
+void Point::setXSteps(int64_t x) { _x = x; }
+void Point::setYSteps(int64_t y) { _y = y; }
+void Point::setZSteps(int64_t z) { _z = z; }

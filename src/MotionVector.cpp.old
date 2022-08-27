@@ -1,0 +1,163 @@
+#include "MotionVector.h"
+
+
+MotionVectorBuffer motionVectorBuffer;
+
+
+
+template<class PointType, class VelocityType>
+AbstractMotionVector<PointType, VelocityType>::AbstractMotionVector()
+  : start(PointType()), end(PointType()), velocity(VelocityType())
+{}
+
+template<class PointType, class VelocityType>
+AbstractMotionVector<PointType, VelocityType>::AbstractMotionVector(const PointType &start, const PointType &end, const double &_velocity)
+    : start(start), end(end)
+{
+  CartesianDouble dir = CartesianDouble(end - start).normalize();
+  velocity = VelocityType(dir * _velocity);
+}
+
+template<class PointType, class VelocityType>
+AbstractMotionVector<PointType, VelocityType>::AbstractMotionVector(const AbstractMotionVector &vec) {
+    start = vec.start;
+    end = vec.end;
+    velocity = vec.velocity;
+}
+
+
+template<class PointType, class VelocityType>
+template<class PointType2, class VelocityType2>
+AbstractMotionVector<PointType, VelocityType>::AbstractMotionVector(const AbstractMotionVector<PointType2, VelocityType2> &vec) {
+    start = vec.start;
+    end = vec.end;
+    velocity = vec.velocity;
+}
+
+
+template<class PointType, class VelocityType>
+PointType AbstractMotionVector<PointType, VelocityType>::getStart() const {
+    return start;
+}
+
+template<class PointType, class VelocityType>
+PointType AbstractMotionVector<PointType, VelocityType>::getEnd() const {
+    return end;
+}
+
+template<class PointType, class VelocityType>
+VelocityType AbstractMotionVector<PointType, VelocityType>::getVelocity() const {
+    return velocity;
+}
+
+
+template<class PointType, class VelocityType>
+bool operator>=(const PointType &curr, const AbstractMotionVector<PointType, VelocityType> vec) {
+    if (vec.velocity.getX() >= 0) {
+        if (curr.getXSteps() < vec.end.getXSteps()) {
+            return false;
+        }
+    } else {
+        if (curr.getXSteps() > vec.end.getXSteps()) {
+            return false;
+        }
+    }
+    if (vec.velocity.getY() >= 0) {
+        if (curr.getYSteps() < vec.end.getYSteps()) {
+            return false;
+        }
+    } else {
+        if (curr.getYSteps() > vec.end.getYSteps()) {
+            return false;
+        }
+    }
+    if (vec.velocity.getZ() >= 0) {
+        if (curr.getZSteps() < vec.end.getZSteps()) {
+            return false;
+        }
+    } else {
+        if (curr.getZSteps() > vec.end.getZSteps()) {
+            return false;
+        }
+    }
+    return true;
+}
+
+
+
+
+
+
+
+
+MotionVectorBuffer::MotionVectorBuffer() {
+  head = 0;
+  tail = 0;
+  empty = true;
+}
+
+
+bool MotionVectorBuffer::isEmpty() {
+  return empty;
+}
+
+
+bool MotionVectorBuffer::isFull() {
+  return !empty;
+}
+
+
+uint32_t MotionVectorBuffer::getSize() {
+  uint32_t size = 0;
+  if (!empty) {
+    if (head < tail) {
+      size = tail - head;
+    } else {
+      size = tail + (STEP_INSTRUCTION_BUFFER_SIZE - head);
+    }
+  }
+  return size;
+}
+
+
+bool MotionVectorBuffer::add(const MotionVector &vec) {
+  bool success = false;
+  if (head != tail || empty) {
+    buff[tail] = AtomicMotionVector(vec);
+    tail++;
+    if (tail >= STEP_INSTRUCTION_BUFFER_SIZE) {
+      tail = 0;
+    }
+    empty = false;
+    success = true;
+  }
+  return success;
+}
+
+
+bool MotionVectorBuffer::remove(AtomicMotionVector** vec) volatile {
+  bool success = false;
+  if (!empty) {
+    success = true;
+    *vec = buff + head;
+    head++;
+    if (head >= STEP_INSTRUCTION_BUFFER_SIZE) {
+      head = 0;
+    }
+    if (head == tail) {
+      empty = true;
+    }
+  }
+  return success;
+}
+
+
+bool MotionVectorBuffer::peek(AtomicMotionVector** vec) volatile {
+  bool success = false;
+  if (!empty) {
+    success = true;
+    *vec = buff + head;
+  }
+  return success;
+}
+

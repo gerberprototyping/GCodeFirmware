@@ -16,7 +16,7 @@
 
 
 #define GCODE_ACK_MSG                       "ACK\r\n"
-#define GCODE_JOB_START_MSG                 "Starting job\r\n"
+#define GCODE_JOB_START_MSG                 "Ready\r\n"
 #define GCODE_JOB_DONE_MSG                  "Job complete\r\n"
 
 #define GCODE_RX_BUFF_SIZE                  256
@@ -24,8 +24,6 @@
 
 
 
-
-#define SUB_MM_RESOLUTION                   1000
 
 #define STEP_INTERRUPT_PERIOD               1000
 #define STEP_INSTRUCTION_BUFFER_SIZE        64
@@ -43,7 +41,7 @@
 #define Y_STEPS_PER_MM                      STEPS_PER_MM
 #define Z_STEPS_PER_MM                      STEPS_PER_MM
 
-#define MAX_SPEED                           10                                                // Max speed in mm/sec (double)
+#define MAX_SPEED                           600                                               // Max speed in mm/min (double)
 #define MAX_PACE                            ((uint32_t)(1000000/(MAX_SPEED*STEPS_PER_MM)))    // Max (or rather min) pace in microseconds/step
 
 

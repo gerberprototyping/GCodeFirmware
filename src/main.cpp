@@ -17,13 +17,25 @@ int main() {
     initClock40();
 
     UART uart = UART(USART2, 9600);
-    GCode::Controller controller = GCode::Controller();
+    GCode::Controller controller;
 
     initLED();
     delay(500);
     setLED(false);
+
     uart.println();
-    uart.println("Initialization complete");
+    uart.println("Gerber Prototyping PCB Mill");
+    uart.println("Initializing...\t");
+
+    /******************************************
+     * Some Debug Stuff
+     *****************************************
+    for (int i=0; i<3000; i++) {
+        xStepDriver.step(false);
+        delay(1);
+    }
+    while(true);
+    /*****************************************/
 
     controller.run(uart, uart);
     while(true);

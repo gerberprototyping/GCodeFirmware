@@ -3,110 +3,148 @@
 
 #include <cmath>
 #include <cstdint>
-#include "Config.h"
+
+#include "config.h"
+#include "Concurrent.h"
+
+
+// Forward Declare Cartesian
+template<typename T>
+class Cartesian;
 
 
 template<typename T>
-struct Cartesian {
+class AtomicCartesian {
 
-  T x, y, z;
+    public:
 
-  Cartesian() {}
-  Cartesian(const T &x, const T &y, const T &z);
-  Cartesian(const T &magnitude, const Cartesian<T> &direction);
-  Cartesian(const Cartesian<T> &c);
-  Cartesian(const volatile Cartesian<T> &c);
-  void operator=(const volatile Cartesian<T> &c) volatile;
+        AtomicCartesian();
+        AtomicCartesian(const AtomicCartesian<T> &AC);
+        void store(const Cartesian<T> &C) volatile;
+        Cartesian<T> load() volatile;
 
-  template<typename T2>
-  Cartesian(const Cartesian<T2> &c);
+    private:
 
-  T getMagnitude() const;
-  bool isNormalized() const;
-
-  Cartesian<T> abs() const;
-  Cartesian<T> normalize() const;
-  Cartesian<T> operator+(const T &x) const;
-  Cartesian<T> operator-(const T &x) const;
-  Cartesian<T> operator+(const Cartesian<T> &c) const;
-  Cartesian<T> operator-(const Cartesian<T> &c) const;
-  Cartesian<T> operator*(const double &scalar) const;
-  Cartesian<T> operator/(const double &scalar) const;
-  void operator+=(const Cartesian<T> &c);
-  void operator-=(const Cartesian<T> &c);
-  void operator*=(const double &scalar);
-  void operator/=(const double &scalar);
-  bool operator==(const Cartesian<T> &c) const;
+        volatile Semaphore lock;
+        volatile T x;
+        volatile T y;
+        volatile T z;
 
 };
 
-
 template<typename T>
-Cartesian<T> operator+(const T &a, const Cartesian<T> &c);
+class Cartesian {
 
-template<typename T>
-Cartesian<T> operator-(const T &a, const Cartesian<T> &c);
+    public:
 
-template<typename T>
-Cartesian<T> operator*(const double &scalar, const Cartesian<T> &c);
+        Cartesian();
+        Cartesian(const T &val);
+        Cartesian(const T &x, const T &y, const T &z);
+        Cartesian(const Cartesian<T> &C);
+        template<typename T2> Cartesian(const Cartesian<T2> &C);
 
-template<typename T>
-Cartesian<T> operator/(const double &scalar, const Cartesian<T> &c);
+        T getX() const;
+        T getY() const;
+        T getZ() const;
+        void setX(T &x);
+        void setY(T &y);
+        void setZ(T &z);
 
+        T getMagnitude() const;
+        bool isNormalized() const;
+        Cartesian<T> abs() const;
+        Cartesian<T> normalize() const;
+        bool operator==(const Cartesian<T> &C) const;
 
+        Cartesian<T> operator+(const Cartesian<T> &C) const;
+        Cartesian<T> operator-(const Cartesian<T> &C) const;
+        Cartesian<T> operator+(const T &scalar) const;
+        Cartesian<T> operator-(const T &scalar) const;
+        Cartesian<T> operator*(const T &scalar) const;
+        Cartesian<T> operator/(const T &scalar) const;
 
+        void operator+=(const Cartesian<T> &C);
+        void operator-=(const Cartesian<T> &C);
+        void operator+=(const T &scalar);
+        void operator-=(const T &scalar);
+        void operator*=(const T &scalar);
+        void operator/=(const T & scalar);
 
-// Contains positional data stored as steps from origin
-struct Point: public Cartesian<int32_t> {
+        friend class AtomicCartesian<T>;
 
-  public:
-
-    Point();
-    Point(const Point &p);
-    Point(const volatile Point &p);
-    void operator=(const volatile Point &p) volatile;
-    static Point zero();
-    static Point fromMM(Cartesian<double> c);
-    static Point fromMM(double x, double y, double z);
-    static Point fromSteps(Cartesian<int32_t> c);
-    static Point fromSteps(int32_t x, int32_t y, int32_t z);
-
-    Cartesian<double> toMM() const;
-    Cartesian<int32_t> toSteps() const;
-
-    Point operator+(const Point &p) const;
-    Point operator-(const Point &p) const;
-    Point operator*(const double &scalar) const;
-    Point operator/(const double &scalar) const;
-
-    static int32_t fromMM(double mm);
-    static int32_t fromSteps(int32_t steps);
-
-  private:
-
-    Point(const int32_t &x, const int32_t &y, const int32_t &z);
+    protected:
+    
+        T _x, _y, _z;
 
 };
 
+template<typename T> Cartesian<T> operator/(const int scalar, Cartesian<T> C);
 
 
+using CartesianInt = Cartesian<int64_t>;
+using CartesianUint = Cartesian<uint64_t>;
+using CartesianDouble = Cartesian<double>;
+using AtomicCartesianInt = AtomicCartesian<int64_t>;
+using AtomicCartesianUint = AtomicCartesian<uint64_t>;
+using AtomicCartesianDouble = AtomicCartesian<double>;
 
-// Contains velocity data stored in mm/sec
-struct Velocity: Cartesian<double> {
-  Velocity();
-  Velocity(const Cartesian<double> &vec);
-  Velocity(const Cartesian<int32_t> &vec);
-  Velocity(const volatile Cartesian<double> &vec);
-  Velocity(const volatile Cartesian<int32_t> &vec);
-  void operator=(const volatile Cartesian<double> &vec) volatile;
-  void operator=(const volatile Cartesian<int32_t> &vec) volatile;
-  using Cartesian::Cartesian;
+using Velocity = Cartesian<double>;
+using AtomicVelocity = AtomicCartesian<double>;
+
+
+// Forward declare AtomicPoint
+struct AtomicPoint;
+
+class Point: public CartesianInt {
+
+    public:
+
+        Point() : CartesianInt() {}
+
+        static Point fromMM(CartesianDouble &C);
+        static Point fromMM(double x, double y, double z);
+        static Point fromSteps(CartesianInt &C);
+        static Point fromSteps(int64_t x, int64_t y, int64_t z);
+
+        CartesianDouble toMM() const;
+        CartesianInt toSteps() const;
+        CartesianInt getRaw() const;
+
+        double getXMM() const;
+        double getYMM() const;
+        double getZMM() const;
+        int64_t getXSteps() const;
+        int64_t getYSteps() const;
+        int64_t getZSteps() const;
+        void setXMM(double x);
+        void setYMM(double y);
+        void setZMM(double Z);
+        void setXSteps(int64_t x);
+        void setYSteps(int64_t y);
+        void setZSteps(int64_t z);
+
+        friend struct AtomicPoint;
+
+    protected:
+
+        Point(const CartesianInt C) : CartesianInt(C) {}
+        Point(int64_t x, int64_t y, int64_t z) : CartesianInt(x, y, z) {}
+
+        using CartesianInt::getX;
+        using CartesianInt::getY;
+        using CartesianInt::getZ;
+        using CartesianInt::setX;
+        using CartesianInt::setY;
+        using CartesianInt::setZ;
+
+};
+
+struct AtomicPoint: public AtomicCartesian<int64_t> {
+    Point load() volatile { return Point(AtomicCartesian::load()); }
 };
 
 
+#include "Cartesian.hpp"
 
 
-#include "Cartesian_imp.hpp"
-
-
-#endif
+#endif // __CARTESIAN_H

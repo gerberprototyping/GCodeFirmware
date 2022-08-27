@@ -7,7 +7,7 @@ using namespace GCode;
 
 
 Controller::Controller()
-    : pathEnd(Point::zero()), feedrate(MAX_SPEED)
+    : atomic_pathEnd(AtomicPoint()), atomic_feedrate(MAX_SPEED)
 {
     StepDriver::initAll();
 }
@@ -49,26 +49,27 @@ void Controller::run(InputStream &istream, OutputStream &ostream) {
 
 
 void Controller::G0(Line &line) {
-    Point _pathEnd = pathEnd;
-    Point dest = _pathEnd;
+    Point pathEnd = atomic_pathEnd.load();
+    Point dest = pathEnd;
+    double feedrate = atomic_feedrate.load();
     for (uint32_t i=1; i<line.getCount(); i++) {
         if ( 'X' == line[i].letter ) {
-            dest.x = Point::fromMM(line[i].number);
+            dest.setXMM(line[i].number);
         }
         else if ( 'Y' == line[i].letter ) {
-            dest.y = Point::fromMM(line[i].number);
+            dest.setYMM(line[i].number);
         }
         else if ( 'Z' == line[i].letter ) {
-            dest.z = Point::fromMM(line[i].number);
+            dest.setZMM(line[i].number);
         }
         else if ( 'F' == line[i].letter ) {
-            feedrate = line[i].number / 60;     // convert mm/min to mm/sec
+            feedrate = line[i].number;
+            atomic_feedrate.store(feedrate);
         }
     }
-    double _feedrate = feedrate;
-    MotionVector vec = MotionVector(_pathEnd, dest, _feedrate);
-    while(!motionVectorBuffer.add(vec));        // attempt to add to buffer until successfull
-    pathEnd = dest;
+    MotionVector vec = MotionVector(pathEnd, dest, feedrate);
+    while(!motionVectorBuffer.add(vec));        // attempt to add to buffer until successful
+    atomic_pathEnd.store(dest);
 }
 
 
@@ -95,6 +96,6 @@ void Controller::G28(Line &line) {
             }
         }
     }
-    Point pathEnd = Point::zero();
+    atomic_pathEnd.store(Point());
     StepDriver::start();
 }
