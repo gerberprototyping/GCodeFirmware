@@ -23,6 +23,9 @@ class AtomicCartesian {
         void store(const Cartesian<T> &C) volatile;
         Cartesian<T> load() volatile;
 
+        AtomicCartesian& operator=(const AtomicCartesian &AC) = delete;
+        AtomicCartesian& operator=(const AtomicCartesian &AC) volatile = delete;
+
     private:
 
         volatile Semaphore lock;
@@ -141,6 +144,8 @@ class Point: public CartesianInt {
 
 struct AtomicPoint: public AtomicCartesian<int64_t> {
     Point load() volatile { return Point(AtomicCartesian::load()); }
+    AtomicPoint& operator=(const AtomicPoint &AC) = delete;
+    AtomicPoint& operator=(const AtomicPoint &AC) volatile = delete;
 };
 
 

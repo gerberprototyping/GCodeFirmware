@@ -42,7 +42,7 @@
 #define Z_STEPS_PER_MM                      STEPS_PER_MM
 
 #define MAX_SPEED                           600                                               // Max speed in mm/min (double)
-#define MAX_PACE                            ((uint32_t)(1000000/(MAX_SPEED*STEPS_PER_MM)))    // Max (or rather min) pace in microseconds/step
+#define MAX_PACE                            ((uint32_t)(60000000/(MAX_SPEED*STEPS_PER_MM)))    // Max (or rather min) pace in microseconds/step
 
 
 #define ENABLE_PIN                          ARDUINO_D8            // Active Low
