@@ -24,8 +24,8 @@ namespace GCode {
 
         private:
 
-            AtomicPoint atomic_pathEnd;
-            Atomic<double> atomic_feedrate;
+            volatile Atomic<Point> atomic_pathEnd;
+            volatile Atomic<double> atomic_feedrate;
 
             void G0(Line &line);
             void G1(Line &line);

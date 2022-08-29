@@ -3,44 +3,6 @@
 // Template implementation file
 
 
-/***********************************************************
- * AtomicCartesian
- **********************************************************/
-
-template<typename T>
-AtomicCartesian<T>::AtomicCartesian()
-    : x(0), y(0), z(0)
-{
-    // Intentionally left blank
-}
-
-template<typename T>
-AtomicCartesian<T>::AtomicCartesian(const AtomicCartesian<T> &AC) {
-    x = AC.x;
-    y = AC.y;
-    z = AC.z;
-}
-
-template<typename T>
-void AtomicCartesian<T>::store(const Cartesian<T> &C) volatile {
-    while(!lock.give());
-        x = C._x;
-        y = C._y;
-        z = C._z;
-    lock.clear();
-}
-
-template<typename T>
-Cartesian<T> AtomicCartesian<T>::load() volatile {
-    while(!lock.give());
-        T _x = x;
-        T _y = y;
-        T _z = z;
-    lock.clear();
-    return Cartesian<T>(_x, _y, _z);
-}
-
-
 
 
 /***********************************************************

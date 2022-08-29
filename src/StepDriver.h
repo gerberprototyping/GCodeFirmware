@@ -19,49 +19,49 @@
 
 class StepDriver {
 
-  public:
+    public:
 
-    StepDriver() {}
-    StepDriver(Stepper stepper, LimitSwitch limitSw, bool homeDir);
-    StepDriver(Stepper stepper1, Stepper stepper2, LimitSwitch limitSw1, LimitSwitch limitSw2, bool homeDir);
+        StepDriver() {}
+        StepDriver(Stepper stepper, LimitSwitch limitSw, bool homeDir);
+        StepDriver(Stepper stepper1, Stepper stepper2, LimitSwitch limitSw1, LimitSwitch limitSw2, bool homeDir);
 
-    void home();
-    int testStepping(double maxSpeed);
-    bool testStepping(double maxSpeed, int tolerance);
+        void home();
+        int testStepping(double maxSpeed);
+        bool testStepping(double maxSpeed, int tolerance);
 
-    void step(bool dir);
-    void stepPos();
-    void stepNeg();
-    bool checkLimit();
+        void step(bool dir);
+        void stepPos();
+        void stepNeg();
+        bool checkLimit();
 
-    static void initAll();
-    static void homeAll();
-    static bool testSteppingAll(double maxSpeed, int tolerance);
+        static void initAll();
+        static void homeAll();
+        static bool testSteppingAll(double maxSpeed, int tolerance);
 
-    static void start();
-    static void stop();
-    static bool isRunning();
+        static void start();
+        static void stop();
+        static bool isRunning();
+        static Point getCurrLocation();
 
-    static void interruptHandler();
+        static void interruptHandler();
 
-    static Point getCurrLocation();
+    private:
 
-  private:
+        bool dual;
+        bool homeDir;
 
-    bool dual;
-    bool homeDir;
+        volatile Lock calibrated;
+        volatile Atomic<int64_t> currStep;
 
-    volatile bool calibrated;
-    volatile int64_t currStep;
-
-    Stepper stepper1;
-    Stepper stepper2;
-    LimitSwitch limitSw1;
-    LimitSwitch limitSw2;
+        Stepper stepper1;
+        Stepper stepper2;
+        LimitSwitch limitSw1;
+        LimitSwitch limitSw2;
 
 
-    static volatile bool running;
-    static TimerInterrupt timerInterrupt;
+        static TimerInterrupt timerInterrupt;
+        static volatile Lock running;
+        static volatile Atomic<CartesianInt> atomic_prevStepTime;
 
 };
 

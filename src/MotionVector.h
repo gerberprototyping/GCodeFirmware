@@ -12,28 +12,6 @@
 
 
 
-// Forward declare MotionVector and MotionVectorBuffer
-class MotionVector;
-class MotionVectorBuffer;
-
-class AtomicMotionVector {
-
-    public:
-
-        AtomicMotionVector();
-        AtomicMotionVector(const AtomicPoint &start, const AtomicPoint &end, const AtomicVelocity &velocity);
-        void store(const MotionVector &vec) volatile;
-        MotionVector load() volatile;
-
-    private:
-
-        volatile Semaphore lock;
-        volatile AtomicPoint start;
-        volatile AtomicPoint end;
-        volatile AtomicVelocity velocity;
-
-};
-
 class MotionVector {
 
     public:
@@ -47,9 +25,6 @@ class MotionVector {
         Velocity getVelocity() const;
 
         friend bool operator>=(const Point &curr, const MotionVector &vec);
-
-        friend class AtomicMotionVector;
-        friend class MotionVectorBuffer;
 
     private:
 
@@ -73,9 +48,9 @@ class MotionVectorBuffer {
 
         MotionVectorBuffer();
 
-        bool isEmpty() const;
-        bool isFull() const;
-        uint32_t getSize() const;
+        bool isEmpty();
+        bool isFull();
+        uint32_t getSize();
 
         bool add(const MotionVector &vec);
         bool remove(MotionVector* vec);
@@ -83,10 +58,10 @@ class MotionVectorBuffer {
 
     private:
 
-        AtomicMotionVector buff[STEP_INSTRUCTION_BUFFER_SIZE];
-        std::atomic<uint32_t> head;
-        std::atomic<uint32_t> tail;
-        std::atomic<bool> empty;
+        volatile Atomic<MotionVector> buff[STEP_INSTRUCTION_BUFFER_SIZE];
+        volatile uint32_t head;
+        volatile uint32_t tail;
+        volatile bool empty;
 
 };
 

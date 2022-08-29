@@ -6,9 +6,9 @@ using namespace GCode;
 
 
 
-Controller::Controller()
-    : atomic_pathEnd(AtomicPoint())
+Controller::Controller() 
 {
+    atomic_pathEnd.store(Point());
     atomic_feedrate.store(MAX_SPEED);
     StepDriver::initAll();
 }

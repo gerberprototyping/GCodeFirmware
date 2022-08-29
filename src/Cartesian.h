@@ -5,35 +5,7 @@
 #include <cstdint>
 
 #include "config.h"
-#include "Concurrent.h"
 
-
-// Forward Declare Cartesian
-template<typename T>
-class Cartesian;
-
-
-template<typename T>
-class AtomicCartesian {
-
-    public:
-
-        AtomicCartesian();
-        AtomicCartesian(const AtomicCartesian<T> &AC);
-        void store(const Cartesian<T> &C) volatile;
-        Cartesian<T> load() volatile;
-
-        AtomicCartesian& operator=(const AtomicCartesian &AC) = delete;
-        AtomicCartesian& operator=(const AtomicCartesian &AC) volatile = delete;
-
-    private:
-
-        volatile Semaphore lock;
-        volatile T x;
-        volatile T y;
-        volatile T z;
-
-};
 
 template<typename T>
 class Cartesian {
@@ -73,8 +45,6 @@ class Cartesian {
         void operator*=(const T &scalar);
         void operator/=(const T & scalar);
 
-        friend class AtomicCartesian<T>;
-
     protected:
     
         T _x, _y, _z;
@@ -87,16 +57,11 @@ template<typename T> Cartesian<T> operator/(const int scalar, Cartesian<T> C);
 using CartesianInt = Cartesian<int64_t>;
 using CartesianUint = Cartesian<uint64_t>;
 using CartesianDouble = Cartesian<double>;
-using AtomicCartesianInt = AtomicCartesian<int64_t>;
-using AtomicCartesianUint = AtomicCartesian<uint64_t>;
-using AtomicCartesianDouble = AtomicCartesian<double>;
 
 using Velocity = Cartesian<double>;
-using AtomicVelocity = AtomicCartesian<double>;
 
 
-// Forward declare AtomicPoint
-struct AtomicPoint;
+
 
 class Point: public CartesianInt {
 
@@ -126,8 +91,6 @@ class Point: public CartesianInt {
         void setYSteps(int64_t y);
         void setZSteps(int64_t z);
 
-        friend struct AtomicPoint;
-
     protected:
 
         Point(const CartesianInt C) : CartesianInt(C) {}
@@ -142,11 +105,7 @@ class Point: public CartesianInt {
 
 };
 
-struct AtomicPoint: public AtomicCartesian<int64_t> {
-    Point load() volatile { return Point(AtomicCartesian::load()); }
-    AtomicPoint& operator=(const AtomicPoint &AC) = delete;
-    AtomicPoint& operator=(const AtomicPoint &AC) volatile = delete;
-};
+
 
 
 #include "Cartesian.hpp"

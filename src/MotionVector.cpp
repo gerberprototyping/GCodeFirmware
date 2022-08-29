@@ -4,41 +4,6 @@
 MotionVectorBuffer motionVectorBuffer;
 
 
-/***********************************************************
- * AtomicMotionVector
- **********************************************************/
-
-AtomicMotionVector::AtomicMotionVector()
-    : start(AtomicPoint()), end(AtomicPoint()), velocity(AtomicVelocity())
-{
-    // Intentionally left blank
-}
-
-AtomicMotionVector::AtomicMotionVector(const AtomicPoint &start, const AtomicPoint &end, const AtomicVelocity &velocity)
-    : start(start), end(end), velocity(velocity)
-{
-    // Intentionally left blank
-}
-
-void AtomicMotionVector::store(MotionVector const &vec) volatile {
-    while(!lock.give());
-        start.store(vec.start);
-        end.store(vec.end);
-        velocity.store(vec.velocity);
-    lock.clear();
-}
-
-MotionVector AtomicMotionVector::load() volatile {
-    MotionVector vec = MotionVector();
-    while(!lock.give());
-        vec.start    = start.load();
-        vec.end      = end.load();
-        vec.velocity = velocity.load();
-    lock.clear();
-    return vec;
-}
-
-
 
 
 /***********************************************************
@@ -123,21 +88,23 @@ MotionVectorBuffer::MotionVectorBuffer()
 }
 
 
-bool MotionVectorBuffer::isEmpty() const {
+bool MotionVectorBuffer::isEmpty() {
     return empty;
 }
 
-bool MotionVectorBuffer::isFull() const {
+bool MotionVectorBuffer::isFull() {
     return !empty && (head != tail);
 }
 
-uint32_t MotionVectorBuffer::getSize() const {
+uint32_t MotionVectorBuffer::getSize() {
     uint32_t size = 0;
     if (!empty) {
-        if (head < tail) {
-            size = tail - head;
+        uint32_t _head = head;
+        uint32_t _tail = tail;
+        if (_head < _tail) {
+            size = _tail - _head;
         } else {
-            size = tail + (STEP_INSTRUCTION_BUFFER_SIZE - head);
+            size = _tail + (STEP_INSTRUCTION_BUFFER_SIZE - _head);
         }
     }
     return size;
@@ -145,36 +112,36 @@ uint32_t MotionVectorBuffer::getSize() const {
 
 
 bool MotionVectorBuffer::add(const MotionVector &vec) {
-    if (head != tail || empty) {
-        buff[tail].store(vec);
-        tail++;
-        if (tail >= STEP_INSTRUCTION_BUFFER_SIZE) {
-            tail = 0;
-        }
-        empty = false;
-        return true;
+    if (!empty && head == tail) {
+        return false;
     }
-    return false;
+    if (!buff[tail].tryStore(vec)) {
+        return false;
+    }
+    uint32_t _tail = tail + 1;
+    if (_tail >= STEP_INSTRUCTION_BUFFER_SIZE) {
+        _tail = 0;
+    }
+    tail = _tail;
+    empty = false;
+    return true;
 }
 
 bool MotionVectorBuffer::remove(MotionVector* vec) {
-    bool success = peek(vec);
-    if (success) {
-        head++;
-        if (head >= STEP_INSTRUCTION_BUFFER_SIZE) {
-            head = 0;
-        }
-        if (head == tail) {
-            empty = true;
-        }
+    if (empty || !buff[head].tryLoad(vec)) {
+        return false;
     }
-    return success;
+    uint32_t _head = head + 1;
+    if (_head >= STEP_INSTRUCTION_BUFFER_SIZE) {
+        _head = 0;
+    }
+    head = _head;
+    if (_head == tail) {
+        empty = true;
+    }
+    return true;
 }
 
 bool MotionVectorBuffer::peek(MotionVector* vec) {
-    if (!empty) {
-        *vec = buff[head].load();
-        return true;
-    }
-    return false;
+    return !empty && buff[head].tryLoad(vec);
 }
