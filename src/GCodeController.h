@@ -5,7 +5,6 @@
 #include "GCode.h"
 #include "GCodeScanner.h"
 #include "StepDriver.h"
-#include "Concurrent.h"
 
 
 
@@ -24,12 +23,12 @@ namespace GCode {
 
         private:
 
-            volatile Atomic<Point> atomic_pathEnd;
-            volatile Atomic<double> atomic_feedrate;
+            Point pathEnd;
+            double feedrate;
 
-            void G0(Line &line);
-            void G1(Line &line);
-            void G28(Line &line);
+            bool G0(Line &line);
+            bool G1(Line &line);
+            bool G28(Line &line);
 
     };
 

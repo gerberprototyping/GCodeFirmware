@@ -7,7 +7,6 @@
 
 #include "Config.h"
 #include "Cartesian.h"
-#include "Concurrent.h"
 
 
 
@@ -19,6 +18,11 @@ class MotionVector {
         MotionVector();
         MotionVector(const Point &start, const Point &end, const double &velocity);
         MotionVector(const MotionVector &vec);
+        MotionVector(const volatile MotionVector &vec);
+
+        MotionVector& operator=(const MotionVector &vec);
+        MotionVector& operator=(const volatile MotionVector &vec);
+        volatile MotionVector& operator=(const MotionVector &vec) volatile;
 
         Point getStart() const;
         Point getEnd() const;
@@ -58,7 +62,7 @@ class MotionVectorBuffer {
 
     private:
 
-        volatile Atomic<MotionVector> buff[STEP_INSTRUCTION_BUFFER_SIZE];
+        volatile MotionVector buff[STEP_INSTRUCTION_BUFFER_SIZE];
         volatile uint32_t head;
         volatile uint32_t tail;
         volatile bool empty;

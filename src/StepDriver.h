@@ -11,7 +11,6 @@
 #include "TimerInterrupt.h"
 #include "MotionVector.h"
 #include "Cartesian.h"
-#include "Concurrent.h"
 
 #define CALIB_PACE      1000
 #define BACKUP_STEPS    (1*STEPS_PER_MM)
@@ -50,8 +49,8 @@ class StepDriver {
         bool dual;
         bool homeDir;
 
-        volatile Lock calibrated;
-        volatile Atomic<int64_t> currStep;
+        volatile bool calibrated;
+        volatile int64_t currStep;
 
         Stepper stepper1;
         Stepper stepper2;
@@ -60,8 +59,8 @@ class StepDriver {
 
 
         static TimerInterrupt timerInterrupt;
-        static volatile Lock running;
-        static volatile Atomic<CartesianInt> atomic_prevStepTime;
+        static volatile bool running;
+        static volatile CartesianInt atomic_prevStepTime;
 
 };
 

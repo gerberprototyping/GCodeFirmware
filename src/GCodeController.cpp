@@ -6,10 +6,9 @@ using namespace GCode;
 
 
 
-Controller::Controller() 
+Controller::Controller()
+    : pathEnd(Point()), feedrate(MAX_SPEED)
 {
-    atomic_pathEnd.store(Point());
-    atomic_feedrate.store(MAX_SPEED);
     StepDriver::initAll();
 }
 
@@ -27,18 +26,23 @@ void Controller::run(InputStream &istream, OutputStream &ostream) {
     while (true) {
 
         scanner.getNext(line);
-        ostream.println(GCODE_ACK_MSG);
 
+        bool success = false;
         if ( Word('G', 0) == line[0] ) {
-            G0(line);
+            success = G0(line);
         }
         else if ( Word('G', 1) == line[0] ) {
-            G1(line);
+            success = G1(line);
         }
         else if ( Word('G', 28) == line[0] ) {
-            G28(line);
+            success = G28(line);
+        } else {
+            ostream.println(GCODE_NACK_SYNTAX_MSG);
         }
 
+        if (success) {
+            ostream.println(GCODE_ACK_MSG);
+        }
 
     }
 
@@ -49,10 +53,8 @@ void Controller::run(InputStream &istream, OutputStream &ostream) {
 }
 
 
-void Controller::G0(Line &line) {
-    Point pathEnd = atomic_pathEnd.load();
+bool Controller::G0(Line &line) {
     Point dest = pathEnd;
-    double feedrate = atomic_feedrate.load();
     for (uint32_t i=1; i<line.getCount(); i++) {
         if ( 'X' == line[i].letter ) {
             dest.setXMM(line[i].number);
@@ -65,38 +67,49 @@ void Controller::G0(Line &line) {
         }
         else if ( 'F' == line[i].letter ) {
             feedrate = line[i].number;
-            atomic_feedrate.store(feedrate);
+        }
+        else {
+            return false;
         }
     }
     MotionVector vec = MotionVector(pathEnd, dest, feedrate);
     while(!motionVectorBuffer.add(vec));        // attempt to add to buffer until successful
-    atomic_pathEnd.store(dest);
+    pathEnd = dest;
+    return true;
 }
 
 
-void Controller::G1(Line &line) {
-    G0(line);
+bool Controller::G1(Line &line) {
+    return G0(line);
 }
 
 
-void Controller::G28(Line &line) {
+bool Controller::G28(Line &line) {
     while(!motionVectorBuffer.isEmpty());
     StepDriver::stop();
     if (line.getCount() < 2) {
         StepDriver::homeAll();
     } else {
+        bool x, y, z;
         for (uint32_t i=1; i<line.getCount(); i++) {
             if ( 'Z' == line[i].letter ) {
-                zStepDriver.home();
+                z = true;
             }
             else if ( 'X' == line[i].letter ) {
-                xStepDriver.home();
+                x = true;
             }
             else if ( 'Y' == line[i].letter ) {
-                yStepDriver.home();
+                y = true;
+            }
+            else {
+                return false;
             }
         }
+        if (z) zStepDriver.home();
+        if (x) xStepDriver.home();
+        if (y) yStepDriver.home();
     }
-    atomic_pathEnd.store(Point());
+    pathEnd = Point();
     StepDriver::start();
+    return true;
 }

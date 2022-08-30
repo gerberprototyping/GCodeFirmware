@@ -29,6 +29,33 @@ MotionVector::MotionVector(const MotionVector &vec)
     // Intentionally left blank
 }
 
+MotionVector::MotionVector(const volatile MotionVector &vec) {
+    start    = *static_cast<const volatile    Point*>(&vec.start);
+    end      = *static_cast<const volatile    Point*>(&vec.end);
+    velocity = *static_cast<const volatile Velocity*>(&vec.velocity);
+}
+
+MotionVector& MotionVector::operator=(const MotionVector &vec) {
+    start    = vec.start;
+    end      = vec.end;
+    velocity = vec.velocity;
+    return *this;
+}
+
+MotionVector& MotionVector::operator=(const volatile MotionVector &vec) {
+    start    = *static_cast<const volatile    Point*>(&vec.start);
+    end      = *static_cast<const volatile    Point*>(&vec.end);
+    velocity = *static_cast<const volatile Velocity*>(&vec.velocity);
+    return *this;
+}
+
+volatile MotionVector& MotionVector::operator=(const MotionVector &vec) volatile {
+    *static_cast<volatile    Point*>(&start)    = vec.start;
+    *static_cast<volatile    Point*>(&end)      = vec.end;
+    *static_cast<volatile Velocity*>(&velocity) = vec.velocity;
+    return *this;
+}
+
 
 Point MotionVector::getStart() const {
     return start;
@@ -44,6 +71,7 @@ Velocity MotionVector::getVelocity() const {
 
 
 bool operator>=(const Point &curr, const MotionVector &vec) {
+    // X Axis
     if (vec.velocity.getX() >= 0) {
         if (curr.getXSteps() < vec.end.getXSteps()) {
             return false;
@@ -53,6 +81,7 @@ bool operator>=(const Point &curr, const MotionVector &vec) {
             return false;
         }
     }
+    // Y Axis
     if (vec.velocity.getY() >= 0) {
         if (curr.getYSteps() < vec.end.getYSteps()) {
             return false;
@@ -62,6 +91,7 @@ bool operator>=(const Point &curr, const MotionVector &vec) {
             return false;
         }
     }
+    // Z Axis
     if (vec.velocity.getZ() >= 0) {
         if (curr.getZSteps() < vec.end.getZSteps()) {
             return false;
@@ -115,9 +145,7 @@ bool MotionVectorBuffer::add(const MotionVector &vec) {
     if (!empty && head == tail) {
         return false;
     }
-    if (!buff[tail].tryStore(vec)) {
-        return false;
-    }
+    buff[tail] = vec;
     uint32_t _tail = tail + 1;
     if (_tail >= STEP_INSTRUCTION_BUFFER_SIZE) {
         _tail = 0;
@@ -128,9 +156,10 @@ bool MotionVectorBuffer::add(const MotionVector &vec) {
 }
 
 bool MotionVectorBuffer::remove(MotionVector* vec) {
-    if (empty || !buff[head].tryLoad(vec)) {
+    if (empty) {
         return false;
     }
+    *vec = buff[head];
     uint32_t _head = head + 1;
     if (_head >= STEP_INSTRUCTION_BUFFER_SIZE) {
         _head = 0;
@@ -143,5 +172,9 @@ bool MotionVectorBuffer::remove(MotionVector* vec) {
 }
 
 bool MotionVectorBuffer::peek(MotionVector* vec) {
-    return !empty && buff[head].tryLoad(vec);
+    if (empty) {
+        return false;
+    }
+    *vec = buff[head];
+    return true;
 }

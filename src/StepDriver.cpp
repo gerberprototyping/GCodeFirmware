@@ -21,28 +21,28 @@
 
 
 TimerInterrupt StepDriver::timerInterrupt;
-volatile Lock StepDriver::running;
-volatile Atomic<CartesianInt> StepDriver::atomic_prevStepTime;
+volatile bool StepDriver::running = 0;;
+volatile CartesianInt StepDriver::atomic_prevStepTime = CartesianInt();
 
 
 
 
 StepDriver::StepDriver(Stepper stepper, LimitSwitch limitSw, bool homeDir)
-    : dual(false), homeDir(homeDir), stepper1(stepper), limitSw1(limitSw)
+    : dual(false), homeDir(homeDir), calibrated(0), stepper1(stepper), limitSw1(limitSw)
 {
     // Intentionally left blank
 }
 
 
 StepDriver::StepDriver(Stepper stepper1, Stepper stepper2, LimitSwitch limitSw1, LimitSwitch limitSw2, bool homeDir)
-    : dual(true), homeDir(homeDir), stepper1(stepper1), stepper2(stepper2), limitSw1(limitSw1), limitSw2(limitSw2)
+    : dual(true), homeDir(homeDir), calibrated(0), stepper1(stepper1), stepper2(stepper2), limitSw1(limitSw1), limitSw2(limitSw2)
 {
     // Intentionally left blank
 }
 
 
 void StepDriver::home() {
-    if (!running.status()) {
+    if (!running) {
         // Travel home fast
         while (!checkLimit()) {
             step(homeDir);;
@@ -80,13 +80,13 @@ void StepDriver::home() {
                 }
             }
         }
-        calibrated.lock();
-        currStep.store(0);
+        calibrated = 1;
+        currStep = 0;
     }
 }
 
 int StepDriver::testStepping(double maxSpeed) {
-    if (!running.status()) {
+    if (!running) {
 
         uint32_t pace = (uint32_t)(1000000/(maxSpeed*STEPS_PER_MM));
         int maxTolerance = 0;
@@ -129,7 +129,7 @@ bool StepDriver::testStepping(double maxSpeed, int tolerance) {
 void StepDriver::step(bool dir) {
     //TODO: add limit check
     //if (homeDir != dir || !checkLimit()) {
-        currStep.fetch_add(dir ? 1 : -1);
+        currStep += dir ? 1 : -1;
         stepper1.step(dir);
         if (dual) stepper2.step(dir);
     //}
@@ -138,7 +138,7 @@ void StepDriver::step(bool dir) {
 void StepDriver::stepPos() {
     //TODO: add limit check
     //if (homeDir == NEGATIVE || !checkLimit()) {
-        currStep.fetch_add(1);
+        currStep++;
         stepper1.stepPos();
         if (dual) stepper2.stepPos();
     //}
@@ -147,7 +147,7 @@ void StepDriver::stepPos() {
 void StepDriver::stepNeg() {
     //TODO: add limit check
     //if (homeDir == POSITIVE || !checkLimit()) {
-        currStep.fetch_add(-1);
+        currStep--;
         stepper1.stepNeg();
         if (dual) stepper2.stepNeg();
     //}
@@ -172,7 +172,7 @@ void StepDriver::initAll() {
 }
 
 void StepDriver::homeAll() {
-    if (!running.status()) {
+    if (!running) {
         zStepDriver.home();
         xStepDriver.home();
         yStepDriver.home();
@@ -188,29 +188,29 @@ bool StepDriver::testSteppingAll(double maxSpeed, int tolerance) {
 
 void StepDriver::start() {
     TimerInterrupt::start();
-    running.lock();
+    running = 1;
 }
 
 void StepDriver::stop() {
-    running.unlock();
+    running = 0;
     TimerInterrupt::stop();
 }
 
 bool StepDriver::isRunning() {
-    return running.status();
+    return running;
 }
 
 Point StepDriver::getCurrLocation() {
     return Point::fromSteps(
-          xStepDriver.currStep.load(),
-          yStepDriver.currStep.load(),
-          zStepDriver.currStep.load()
+          xStepDriver.currStep,
+          yStepDriver.currStep,
+          zStepDriver.currStep
     );
 }
 
 
 void StepDriver::interruptHandler() {
-    if (running.status()) {
+    if (running) {
         MotionVector motionVec = MotionVector();
         if (motionVectorBuffer.peek(&motionVec)) {
 
@@ -221,7 +221,7 @@ void StepDriver::interruptHandler() {
 
                 int64_t usec = microseconds();
 
-                CartesianInt prevStepTime = atomic_prevStepTime.load();             // make local copy of atomic object
+                CartesianInt prevStepTime = atomic_prevStepTime;                    // make local copy of atomic object
                 CartesianInt deltaT = CartesianInt(usec) - prevStepTime;
                 Velocity velocity = motionVec.getVelocity();
                 CartesianInt pace = 60000000 / (velocity.abs() * STEPS_PER_MM);     // from mm/min to usec/step
@@ -242,7 +242,7 @@ void StepDriver::interruptHandler() {
                     prevStepTime.setZ(usec);
                 }
 
-                atomic_prevStepTime.store(prevStepTime);                            // write back to atomic object
+                atomic_prevStepTime = prevStepTime;                                 // write back to atomic object
 
             }
 

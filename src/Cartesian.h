@@ -16,7 +16,12 @@ class Cartesian {
         Cartesian(const T &val);
         Cartesian(const T &x, const T &y, const T &z);
         Cartesian(const Cartesian<T> &C);
+        Cartesian(const volatile Cartesian<T> &C);
         template<typename T2> Cartesian(const Cartesian<T2> &C);
+
+        Cartesian<T>& operator=(const Cartesian<T>& C);
+        Cartesian<T>& operator=(const volatile Cartesian<T>& C);
+        volatile Cartesian<T>& operator=(const Cartesian<T>& C) volatile;
 
         T getX() const;
         T getY() const;
@@ -68,6 +73,8 @@ class Point: public CartesianInt {
     public:
 
         Point() : CartesianInt() {}
+
+        using CartesianInt::operator=;
 
         static Point fromMM(CartesianDouble &C);
         static Point fromMM(double x, double y, double z);

@@ -16,6 +16,7 @@
 
 
 #define GCODE_ACK_MSG                       "ACK\r\n"
+#define GCODE_NACK_SYNTAX_MSG               "NACK syntax error\r\n"
 #define GCODE_JOB_START_MSG                 "Ready\r\n"
 #define GCODE_JOB_DONE_MSG                  "Job complete\r\n"
 

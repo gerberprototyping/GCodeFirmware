@@ -38,11 +38,42 @@ Cartesian<T>::Cartesian(const Cartesian<T> &C)
 }
 
 template<typename T>
+Cartesian<T>::Cartesian(const volatile Cartesian& C) {
+    _x = *static_cast<const volatile T*>(&C._x);
+    _y = *static_cast<const volatile T*>(&C._y);
+    _z = *static_cast<const volatile T*>(&C._z);
+}
+
+template<typename T>
 template<typename T2>
 Cartesian<T>::Cartesian(const Cartesian<T2> &C)
     : _x(C.getX()), _y(C.getY()), _z(C.getZ())
 {
     // Intentionally left blank
+}
+
+template<typename T>
+Cartesian<T>& Cartesian<T>::operator=(const Cartesian &C) {
+    _x = C._x;
+    _y = C._y;
+    _z = C._z;
+    return *this;
+}
+
+template<typename T>
+Cartesian<T>& Cartesian<T>::operator=(const volatile Cartesian &C) {
+    _x = *static_cast<const volatile T*>(&C._x);
+    _y = *static_cast<const volatile T*>(&C._y);
+    _z = *static_cast<const volatile T*>(&C._z);
+    return *this;
+}
+
+template<typename T>
+volatile Cartesian<T>& Cartesian<T>::operator=(const Cartesian& C) volatile {
+    *static_cast<volatile T*>(&_x) = C._x;
+    *static_cast<volatile T*>(&_y) = C._y;
+    *static_cast<volatile T*>(&_z) = C._z;
+    return *this;
 }
 
 
