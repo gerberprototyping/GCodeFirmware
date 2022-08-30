@@ -10,15 +10,23 @@ class LimitSwitch {
   public:
 
     LimitSwitch() {}
-    LimitSwitch(gpio_t pin, bool normally_open);
+    LimitSwitch(gpio_t negPin, bool noPos);
+    LimitSwitch(bool noNeg, gpio_t posPin);
+    LimitSwitch(gpio_t negPin, gpio_t posPin);
+
     bool isActive();
+    bool isActive(bool dir);
+    bool isNegActive();
+    bool isPosActive();
 
     static void initAll();
 
   private:
 
-    gpio_t pin;
-    bool normally_open;
+    bool has_neg;
+    bool has_pos;
+    gpio_t neg_pin;
+    gpio_t pos_pin;
 
     void init();
 

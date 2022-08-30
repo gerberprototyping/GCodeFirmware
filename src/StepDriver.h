@@ -21,8 +21,8 @@ class StepDriver {
     public:
 
         StepDriver() {}
-        StepDriver(Stepper stepper, LimitSwitch limitSw, bool homeDir);
-        StepDriver(Stepper stepper1, Stepper stepper2, LimitSwitch limitSw1, LimitSwitch limitSw2, bool homeDir);
+        StepDriver(Stepper stepper, LimitSwitch limitSw, int64_t minStep, int64_t maxStep, bool homeDir);
+        StepDriver(Stepper stepper1, Stepper stepper2, LimitSwitch limitSw1, LimitSwitch limitSw2, int64_t minStep, int64_t maxStep, bool homeDir);
 
         void home();
         int testStepping(double maxSpeed);
@@ -31,7 +31,11 @@ class StepDriver {
         void step(bool dir);
         void stepPos();
         void stepNeg();
+
         bool checkLimit();
+        bool checkLimit(bool dir);
+        bool checkNegLimit();
+        bool checkPosLimit();
 
         static void initAll();
         static void homeAll();
@@ -48,6 +52,8 @@ class StepDriver {
 
         bool dual;
         bool homeDir;
+        int64_t minStep;
+        int64_t maxStep;
 
         volatile bool calibrated;
         volatile int64_t currStep;

@@ -2,21 +2,30 @@
 
 
 #if DUAL_DRIVE_X
-    StepDriver xStepDriver(xStepper1, xStepper2, xLimitSw1, xLimitSw2, X_HOME_POS);
+    StepDriver xStepDriver(xStepper1, xStepper2,
+                            xLimitSw1, xLimitSw2,
+                            X_MIN_MM*STEPS_PER_MM, X_MAX_MM*STEPS_PER_MM, X_HOME_POSITION);
 #else
-    StepDriver xStepDriver(xStepper, xLimitSw, X_HOME_POS);
+    StepDriver xStepDriver(xStepper, xLimitSw,
+                            X_MIN_MM*STEPS_PER_MM, X_MAX_MM*STEPS_PER_MM, X_HOME_POSITION);
 #endif
 
 #if DUAL_DRIVE_Y
-    StepDriver yStepDriver(yStepper1, yStepper2, yLimitSw1, yLimitSw2, Y_HOME_POS);
+    StepDriver yStepDriver(yStepper1, yStepper2,
+                            yLimitSw1, yLimitSw2,
+                            Y_MIN_MM*STEPS_PER_MM, Y_MAX_MM*STEPS_PER_MM, Y_HOME_POSITION);
 #else
-    StepDriver yStepDriver(yStepper, yLimitSw, Y_HOME_POS);
+    StepDriver yStepDriver(yStepper, yLimitSw,
+                            Y_MIN_MM*STEPS_PER_MM, Y_MAX_MM*STEPS_PER_MM, Y_HOME_POSITION);
 #endif
 
 #if DUAL_DRIVE_Z
-    StepDriver zStepDriver(zStepper1, zStepper2, zLimitSw1, zLimitSw2, Z_HOME_POS);
+    StepDriver zStepDriver(zStepper1, zStepper2,
+                            zLimitSw1, zLimitSw2,
+                            Y_MIN_MM*STEPS_PER_MM, Z_MAX_MM*STEPS_PER_MM, Z_HOME_POSITION);
 #else
-    StepDriver zStepDriver(zStepper, zLimitSw, Z_HOME_POS);
+    StepDriver zStepDriver(zStepper, zLimitSw,
+                            Y_MIN_MM*STEPS_PER_MM, Z_MAX_MM*STEPS_PER_MM, Z_HOME_POSITION);
 #endif
 
 
@@ -27,15 +36,28 @@ volatile CartesianInt StepDriver::atomic_prevStepTime = CartesianInt();
 
 
 
-StepDriver::StepDriver(Stepper stepper, LimitSwitch limitSw, bool homeDir)
-    : dual(false), homeDir(homeDir), calibrated(0), stepper1(stepper), limitSw1(limitSw)
+StepDriver::StepDriver(Stepper stepper, LimitSwitch limitSw,
+                        int64_t minStep, int64_t maxStep, bool homeDir)
+    : dual(false),
+      calibrated(0),
+      stepper1(stepper),
+      limitSw1(limitSw),
+      minStep(minStep), maxStep(maxStep),
+      homeDir(homeDir)
 {
     // Intentionally left blank
 }
 
 
-StepDriver::StepDriver(Stepper stepper1, Stepper stepper2, LimitSwitch limitSw1, LimitSwitch limitSw2, bool homeDir)
-    : dual(true), homeDir(homeDir), calibrated(0), stepper1(stepper1), stepper2(stepper2), limitSw1(limitSw1), limitSw2(limitSw2)
+StepDriver::StepDriver(Stepper stepper1, Stepper stepper2,
+                        LimitSwitch limitSw1, LimitSwitch limitSw2,
+                        int64_t minStep, int64_t maxStep, bool homeDir)
+    : dual(true),
+      calibrated(0),
+      stepper1(stepper1), stepper2(stepper2),
+      limitSw1(limitSw1), limitSw2(limitSw2),
+      minStep(minStep), maxStep(maxStep),
+      homeDir(homeDir)
 {
     // Intentionally left blank
 }
@@ -44,37 +66,37 @@ StepDriver::StepDriver(Stepper stepper1, Stepper stepper2, LimitSwitch limitSw1,
 void StepDriver::home() {
     if (!running) {
         // Travel home fast
-        while (!checkLimit()) {
-            step(homeDir);;
+        while (!checkLimit(homeDir)) {
+            step(homeDir);
             delay_microseconds(MAX_PACE);
         }
         delay(1);
         // Move to deactivate limit switch
-        while (checkLimit()) {
-            step(!homeDir);;
+        while (checkLimit(homeDir)) {
+            step(!homeDir);
             delay_microseconds(MAX_PACE);
         }
         // Move away from home
         for (int i=0; i<BACKUP_STEPS; i++) {
-            step(!homeDir);;
+            step(!homeDir);
             delay_microseconds(MAX_PACE);
         }
         // Approach home slowly
-        while (!checkLimit()) {
-            step(homeDir);;
+        while (!checkLimit(homeDir)) {
+            step(homeDir);
             delay_microseconds(CALIB_PACE);
         }
         // Align dual axis
         if (dual) {
-            if (!limitSw1.isActive()) {
+            if (!limitSw1.isActive(homeDir)) {
                 // Bring primary axis into alignment with secondary axis
-                while (!limitSw1.isActive()) {
+                while (!limitSw1.isActive(homeDir)) {
                     stepper1.step(homeDir);;
                     delay_microseconds(CALIB_PACE);
                 }
             } else {
                 // Bring secondary axis into alignment with primary axis
-                while (!limitSw2.isActive()) {
+                while (!limitSw2.isActive(homeDir)) {
                     stepper2.step(homeDir);;
                     delay_microseconds(CALIB_PACE);
                 }
@@ -103,7 +125,7 @@ int StepDriver::testStepping(double maxSpeed) {
             }
             delay_microseconds(2*MAX_PACE);
 
-            while (!checkLimit()) {
+            while (!checkLimit(homeDir)) {
                 step(homeDir);
                 delay_microseconds(MAX_PACE);
                 steps--;
@@ -127,35 +149,61 @@ bool StepDriver::testStepping(double maxSpeed, int tolerance) {
 
 
 void StepDriver::step(bool dir) {
-    //TODO: add limit check
-    //if (homeDir != dir || !checkLimit()) {
+    if (!checkLimit(dir)) {
         currStep += dir ? 1 : -1;
         stepper1.step(dir);
         if (dual) stepper2.step(dir);
-    //}
+    }
 }
 
 void StepDriver::stepPos() {
-    //TODO: add limit check
-    //if (homeDir == NEGATIVE || !checkLimit()) {
+    if (!checkPosLimit()) {
         currStep++;
         stepper1.stepPos();
         if (dual) stepper2.stepPos();
-    //}
+    }
 }
 
 void StepDriver::stepNeg() {
-    //TODO: add limit check
-    //if (homeDir == POSITIVE || !checkLimit()) {
+    if (!checkNegLimit()) {
         currStep--;
         stepper1.stepNeg();
         if (dual) stepper2.stepNeg();
-    //}
+    }
 }
 
+
 bool StepDriver::checkLimit() {
-    //TODO: add virtual limits
-    return limitSw1.isActive() || (dual && limitSw2.isActive());
+    return limitSw1.isPosActive()
+            || limitSw1.isNegActive()
+            || (dual && limitSw2.isPosActive())
+            || (dual && limitSw2.isNegActive())
+            || (calibrated && currStep >= maxStep)
+            || (calibrated && currStep <= minStep);
+}
+
+bool StepDriver::checkLimit(bool dir) {
+    if (POSITIVE == dir) {
+        return limitSw1.isPosActive()
+                || (dual && limitSw2.isPosActive())
+                || (calibrated && currStep >= maxStep);
+    } else {
+        return limitSw1.isNegActive()
+                || (dual && limitSw2.isNegActive())
+                || (calibrated && currStep <= minStep);
+    }
+}
+
+bool StepDriver::checkNegLimit() {
+    return limitSw1.isNegActive()
+            || (dual && limitSw2.isNegActive())
+            || (calibrated && currStep <= minStep);
+}
+
+bool StepDriver::checkPosLimit() {
+    return limitSw1.isPosActive()
+            || (dual && limitSw2.isPosActive())
+            || (calibrated && currStep >= maxStep);
 }
 
 

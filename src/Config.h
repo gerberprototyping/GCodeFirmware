@@ -42,8 +42,24 @@
 #define Y_STEPS_PER_MM                      STEPS_PER_MM
 #define Z_STEPS_PER_MM                      STEPS_PER_MM
 
-#define MAX_SPEED                           600                                               // Max speed in mm/min (double)
+#define MAX_SPEED                           600                                                // Max speed in mm/min (double)
 #define MAX_PACE                            ((uint32_t)(60000000/(MAX_SPEED*STEPS_PER_MM)))    // Max (or rather min) pace in microseconds/step
+
+
+#define X_HOME_POSITION                     NEGATIVE
+#define Y_HOME_POSITION                     NEGATIVE
+#define Z_HOME_POSITION                     NEGATIVE
+
+#define X_MAX_MM                            180
+#define Y_MAX_MM                            100
+#define Z_MAX_MM                            999 // dual limit switches used
+#define X_MIN_MM                            -1
+#define Y_MIN_MM                            -1
+#define Z_MIN_MM                            -1
+
+#define LIMIT_NORMALLY_OPEN                 false
+
+
 
 
 #define ENABLE_PIN                          ARDUINO_D8            // Active Low
@@ -53,36 +69,40 @@
 //#define ABORT_PIN                           ARDUINO_A0
 #define A_DIR_PIN                           ARDUINO_D13
 #define X_DIR_PIN                           ARDUINO_D5
-#define X2_DIR_PIN
 #define Y_DIR_PIN                           ARDUINO_D6
-#define Y2_DIR_PIN                          A_DIR_PIN
 #define Z_DIR_PIN                           ARDUINO_D7
-#define Z2_DIR_PIN
 #define A_STEP_PIN                          ARDUINO_D12
 #define X_STEP_PIN                          ARDUINO_D2
-#define X2_STEP_PIN
 #define Y_STEP_PIN                          ARDUINO_D3
-#define Y2_STEP_PIN                         A_STEP_PIN
 #define Z_STEP_PIN                          ARDUINO_D4
-#define Z2_STEP_PIN
+
+#define X_LIMIT_NEG_PIN                     ARDUINO_D9
+#define Y_LIMIT_NEG_PIN                     ARDUINO_D10
+#define Z_LIMIT_NEG_PIN                     ARDUINO_D11
+//#define X_LIMIT_POS_PIN
+//#define Y_LIMIT_POS_PIN
+#define Z_LIMIT_POS_PIN                     B14
+
 
 #define DUAL_DRIVE_X                        false
+#define X2_DIR_PIN
+#define X2_STEP_PIN
+#define X2_LIMIT_POS_PIN
+#define X2_LIMIT_NEG_PIN
+
 #define DUAL_DRIVE_Y                        true
+#define Y2_DIR_PIN                          A_DIR_PIN
+#define Y2_STEP_PIN                         A_STEP_PIN
+//#define Y2_LIMIT_POS_PIN
+#define Y2_LIMIT_NEG_PIN                    C4
+
 #define DUAL_DRIVE_Z                        false
+#define Z2_DIR_PIN
+#define Z2_STEP_PIN
+#define Z2_LIMIT_POS_PIN
+#define Z2_LIMIT_NEG_PIN
 
 
-#define X_LIMIT_PIN                         ARDUINO_D9
-#define X2_LIMIT_PIN
-#define Y_LIMIT_PIN                         ARDUINO_D10
-#define Y2_LIMIT_PIN                        C4
-#define Z_LIMIT_PIN                         ARDUINO_D11
-#define Z2_LIMIT_PIN
-#define X_HOME_POS                          false
-#define Y_HOME_POS                          false
-#define Z_HOME_POS                          true              
-#define X_NORMALLY_OPEN                     false
-#define Y_NORMALLY_OPEN                     false
-#define Z_NORMALLY_OPEN                     false
 
 
 #endif

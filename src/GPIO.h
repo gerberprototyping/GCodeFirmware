@@ -54,6 +54,8 @@ void digitalWrite(gpio_t pin, bool state);
 bool digitalRead(gpio_t pin);
 
 
+#define GPIO_NULL   ((gpio_t) {.port = ((GPIO_TypeDef *) uint32_t(0)), .pin = 0})
+
 #define A0          ((gpio_t) {.port = GPIOA, .pin = 0})
 #define A1          ((gpio_t) {.port = GPIOA, .pin = 1})
 #define A2          ((gpio_t) {.port = GPIOA, .pin = 2})
