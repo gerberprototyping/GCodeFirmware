@@ -26,9 +26,10 @@ namespace GCode {
             Point pathEnd;
             double feedrate;
 
-            bool G0(Line &line);
-            bool G1(Line &line);
-            bool G28(Line &line);
+            bool G0(Line &line);        // Rapid Positioning
+            bool G1(Line &line);        // Linear Interpolation
+            bool G28(Line &line);       // Home
+            bool G94(Line &line);       // Feedrate
 
     };
 

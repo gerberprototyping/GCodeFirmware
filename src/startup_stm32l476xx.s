@@ -105,7 +105,7 @@
 ;******************** END ************************************************************************
 
 
-Stack_Size      EQU     0x1000;
+Stack_Size      EQU     0x2000;
 
                 AREA    STACK, NOINIT, READWRITE, ALIGN=3
 Stack_Mem       SPACE   Stack_Size

@@ -57,6 +57,13 @@
 #define Y_MIN_MM                            -1
 #define Z_MIN_MM                            -1
 
+#define X_MAX_STEPS                         (X_MAX_MM * X_STEPS_PER_MM)
+#define Y_MAX_STEPS                         (Y_MAX_MM * Y_STEPS_PER_MM)
+#define Z_MAX_STEPS                         (Z_MAX_MM * Z_STEPS_PER_MM)
+#define X_MIN_STEPS                         (X_MIN_MM * X_STEPS_PER_MM)
+#define Y_MIN_STEPS                         (Y_MIN_MM * Y_STEPS_PER_MM)
+#define Z_MIN_STEPS                         (Z_MIN_MM * Z_STEPS_PER_MM)
+
 #define LIMIT_NORMALLY_OPEN                 false
 
 

@@ -36,6 +36,9 @@ void Controller::run(InputStream &istream, OutputStream &ostream) {
         }
         else if ( Word('G', 28) == line[0] ) {
             success = G28(line);
+        }
+        else if ( Word('G', 94) == line[0]) {
+            success = G94(line);
         } else {
             ostream.println(GCODE_NACK_SYNTAX_MSG);
         }
@@ -53,7 +56,7 @@ void Controller::run(InputStream &istream, OutputStream &ostream) {
 }
 
 
-bool Controller::G0(Line &line) {
+bool Controller::G0(Line &line) {       // Rapid Positioning
     Point dest = pathEnd;
     for (uint32_t i=1; i<line.getCount(); i++) {
         if ( 'X' == line[i].letter ) {
@@ -72,6 +75,25 @@ bool Controller::G0(Line &line) {
             return false;
         }
     }
+    // Constrain destination
+    if (dest.getXSteps() < X_MIN_STEPS ) {
+        dest.setXSteps(X_MIN_STEPS+1);
+    }
+    else if (dest.getXSteps() > X_MAX_STEPS) {
+        dest.setXSteps(X_MAX_STEPS-1);
+    }
+    if (dest.getYSteps() < Y_MIN_STEPS ) {
+        dest.setYSteps(Y_MIN_STEPS+1);
+    }
+    else if (dest.getYSteps() > Y_MAX_STEPS) {
+        dest.setYSteps(Y_MAX_STEPS-1);
+    }
+    if (dest.getZSteps() < Z_MIN_STEPS ) {
+        dest.setZSteps(Z_MIN_STEPS+1);
+    }
+    else if (dest.getZSteps() > Z_MAX_STEPS) {
+        dest.setZSteps(Z_MAX_STEPS-1);
+    }
     MotionVector vec = MotionVector(pathEnd, dest, feedrate);
     while(!motionVectorBuffer.add(vec));        // attempt to add to buffer until successful
     pathEnd = dest;
@@ -79,12 +101,12 @@ bool Controller::G0(Line &line) {
 }
 
 
-bool Controller::G1(Line &line) {
+bool Controller::G1(Line &line) {       // Linear Interpolation
     return G0(line);
 }
 
 
-bool Controller::G28(Line &line) {
+bool Controller::G28(Line &line) {      // Home
     while(!motionVectorBuffer.isEmpty());
     StepDriver::stop();
     if (line.getCount() < 2) {
@@ -112,4 +134,13 @@ bool Controller::G28(Line &line) {
     pathEnd = Point();
     StepDriver::start();
     return true;
+}
+
+
+bool Controller::G94(Line &line) {      // Feedrate
+    if ('F' == line[1].letter) {
+        feedrate = line[1].number;
+        return true;
+    }
+    return false;
 }
