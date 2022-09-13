@@ -24,7 +24,7 @@ class StepDriver {
         StepDriver(Stepper stepper, LimitSwitch limitSw, int64_t minStep, int64_t maxStep, bool homeDir);
         StepDriver(Stepper stepper1, Stepper stepper2, LimitSwitch limitSw1, LimitSwitch limitSw2, int64_t minStep, int64_t maxStep, bool homeDir);
 
-        void home();
+        void home(bool homeMin = true);
         int testStepping(double maxSpeed);
         bool testStepping(double maxSpeed, int tolerance);
 

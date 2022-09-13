@@ -63,47 +63,53 @@ StepDriver::StepDriver(Stepper stepper1, Stepper stepper2,
 }
 
 
-void StepDriver::home() {
+void StepDriver::home(bool homeMin) {
+    bool dir = homeMin ? homeDir : !homeDir;
+    if (dir == homeDir) {
+        calibrated = 0;
+    }
     if (!running) {
         // Travel home fast
-        while (!checkLimit(homeDir)) {
-            step(homeDir);
+        while (!checkLimit(dir)) {
+            step(dir);
             delay_microseconds(MAX_PACE);
         }
         delay(1);
         // Move to deactivate limit switch
-        while (checkLimit(homeDir)) {
-            step(!homeDir);
+        while (checkLimit(dir)) {
+            step(!dir);
             delay_microseconds(MAX_PACE);
         }
         // Move away from home
         for (int i=0; i<BACKUP_STEPS; i++) {
-            step(!homeDir);
+            step(!dir);
             delay_microseconds(MAX_PACE);
         }
         // Approach home slowly
-        while (!checkLimit(homeDir)) {
-            step(homeDir);
+        while (!checkLimit(dir)) {
+            step(dir);
             delay_microseconds(CALIB_PACE);
         }
         // Align dual axis
         if (dual) {
-            if (!limitSw1.isActive(homeDir)) {
+            if (!limitSw1.isActive(dir)) {
                 // Bring primary axis into alignment with secondary axis
-                while (!limitSw1.isActive(homeDir)) {
-                    stepper1.step(homeDir);;
+                while (!limitSw1.isActive(dir)) {
+                    stepper1.step(dir);;
                     delay_microseconds(CALIB_PACE);
                 }
             } else {
                 // Bring secondary axis into alignment with primary axis
-                while (!limitSw2.isActive(homeDir)) {
-                    stepper2.step(homeDir);;
+                while (!limitSw2.isActive(dir)) {
+                    stepper2.step(dir);;
                     delay_microseconds(CALIB_PACE);
                 }
             }
         }
-        calibrated = 1;
-        currStep = 0;
+        if (dir == homeDir) {
+            calibrated = 1;
+            currStep = 0;
+        }
     }
 }
 
@@ -221,9 +227,10 @@ void StepDriver::initAll() {
 
 void StepDriver::homeAll() {
     if (!running) {
-        zStepDriver.home();
+        zStepDriver.home(false);
         xStepDriver.home();
         yStepDriver.home();
+        zStepDriver.home();
     }
 }
 
