@@ -17,7 +17,7 @@ int main() {
     initClock40();
 
     UART uart = UART(USART2, 9600);
-    GCode::Controller controller;
+    GCode::Controller controller = GCode::Controller(&uart, &uart);
 
     initLED();
     delay(500);
@@ -37,7 +37,7 @@ int main() {
     while(true);
     /*****************************************/
 
-    controller.run(uart, uart);
+    controller.run();
     while(true);
 
 

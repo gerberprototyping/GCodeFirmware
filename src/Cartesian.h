@@ -13,11 +13,11 @@ class Cartesian {
     public:
 
         Cartesian();
-        Cartesian(const T &val);
-        Cartesian(const T &x, const T &y, const T &z);
-        Cartesian(const Cartesian<T> &C);
-        Cartesian(const volatile Cartesian<T> &C);
-        template<typename T2> Cartesian(const Cartesian<T2> &C);
+        Cartesian(const T val);
+        Cartesian(const T x, const T y, const T z);
+        Cartesian(const Cartesian<T>& C);
+        Cartesian(const volatile Cartesian<T>& C);
+        template<typename T2> Cartesian(const Cartesian<T2>& C);
 
         Cartesian<T>& operator=(const Cartesian<T>& C);
         Cartesian<T>& operator=(const volatile Cartesian<T>& C);
@@ -26,29 +26,33 @@ class Cartesian {
         T getX() const;
         T getY() const;
         T getZ() const;
-        void setX(T &x);
-        void setY(T &y);
-        void setZ(T &z);
+        void setX(T x);
+        void setY(T y);
+        void setZ(T z);
 
         T getMagnitude() const;
         bool isNormalized() const;
+        bool isZero() const;
+        bool isNonZero() const;
+        T bitwiseAnd() const;
+        T bitwiseOr() const;
         Cartesian<T> abs() const;
         Cartesian<T> normalize() const;
-        bool operator==(const Cartesian<T> &C) const;
+        bool operator==(const Cartesian<T>& C) const;
 
-        Cartesian<T> operator+(const Cartesian<T> &C) const;
-        Cartesian<T> operator-(const Cartesian<T> &C) const;
-        Cartesian<T> operator+(const T &scalar) const;
-        Cartesian<T> operator-(const T &scalar) const;
-        Cartesian<T> operator*(const T &scalar) const;
-        Cartesian<T> operator/(const T &scalar) const;
+        Cartesian<T> operator+(const Cartesian<T>& C) const;
+        Cartesian<T> operator-(const Cartesian<T>& C) const;
+        Cartesian<T> operator+(const T scalar) const;
+        Cartesian<T> operator-(const T scalar) const;
+        Cartesian<T> operator*(const T scalar) const;
+        Cartesian<T> operator/(const T scalar) const;
 
-        void operator+=(const Cartesian<T> &C);
-        void operator-=(const Cartesian<T> &C);
-        void operator+=(const T &scalar);
-        void operator-=(const T &scalar);
-        void operator*=(const T &scalar);
-        void operator/=(const T & scalar);
+        void operator+=(const Cartesian<T>& C);
+        void operator-=(const Cartesian<T>& C);
+        void operator+=(const T scalar);
+        void operator-=(const T scalar);
+        void operator*=(const T scalar);
+        void operator/=(const T scalar);
 
     protected:
     
@@ -59,6 +63,7 @@ class Cartesian {
 template<typename T> Cartesian<T> operator/(const int scalar, Cartesian<T> C);
 
 
+using CartesianBool = Cartesian<bool>;
 using CartesianInt = Cartesian<int64_t>;
 using CartesianUint = Cartesian<uint64_t>;
 using CartesianDouble = Cartesian<double>;

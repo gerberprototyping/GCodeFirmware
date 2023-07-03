@@ -28,7 +28,7 @@ class MotionVector {
         Point getEnd() const;
         Velocity getVelocity() const;
 
-        friend bool operator>=(const Point &curr, const MotionVector &vec);
+        friend CartesianBool operator>=(const Point &curr, const MotionVector &vec);
 
     private:
 
@@ -38,7 +38,7 @@ class MotionVector {
 
 };
 
-bool operator>=(const Point &curr, const MotionVector &vec);
+CartesianBool operator>=(const Point &curr, const MotionVector &vec);
 
 
 

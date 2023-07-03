@@ -69,10 +69,10 @@ uint8_t UART::read() {
     while(!(uart->ISR & USART_ISR_RXNE));
     uint8_t c = uart->RDR;
     #if UART_ECHO
-        write(c);
-        if (c == '\r') {
-            write('\n');
-        }
+        //write(c);
+        //if (c == '\r') {
+        //    write('\n');
+        //}
     #endif
     return c;
 }

@@ -70,38 +70,39 @@ Velocity MotionVector::getVelocity() const {
 }
 
 
-bool operator>=(const Point &curr, const MotionVector &vec) {
+CartesianBool operator>=(const Point &curr, const MotionVector &vec) {
+    CartesianBool result = CartesianBool(true, true, true);
     // X Axis
-    if (vec.velocity.getX() >= 0) {
+    if (vec.start.getXSteps() <= vec.end.getXSteps()) {
         if (curr.getXSteps() < vec.end.getXSteps()) {
-            return false;
+            result.setX(false);
         }
     } else {
         if (curr.getXSteps() > vec.end.getXSteps()) {
-            return false;
+            result.setX(false);
         }
     }
     // Y Axis
-    if (vec.velocity.getY() >= 0) {
+    if (vec.start.getYSteps() <= vec.end.getYSteps()) {
         if (curr.getYSteps() < vec.end.getYSteps()) {
-            return false;
+            result.setY(false);
         }
     } else {
         if (curr.getYSteps() > vec.end.getYSteps()) {
-            return false;
+            result.setY(false);
         }
     }
     // Z Axis
-    if (vec.velocity.getZ() >= 0) {
+    if (vec.start.getZSteps() <= vec.end.getZSteps()) {
         if (curr.getZSteps() < vec.end.getZSteps()) {
-            return false;
+            result.setZ(false);
         }
     } else {
         if (curr.getZSteps() > vec.end.getZSteps()) {
-            return false;
+            result.setZ(false);
         }
     }
-    return true;
+    return result;
 }
 
 

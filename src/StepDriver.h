@@ -25,6 +25,7 @@ class StepDriver {
         StepDriver(Stepper stepper1, Stepper stepper2, LimitSwitch limitSw1, LimitSwitch limitSw2, int64_t minStep, int64_t maxStep, bool homeDir);
 
         void home(bool homeMin = true);
+        bool isAxisCalibrated();
         int testStepping(double maxSpeed);
         bool testStepping(double maxSpeed, int tolerance);
 
@@ -44,6 +45,7 @@ class StepDriver {
         static void start();
         static void stop();
         static bool isRunning();
+        static bool isCalibrated();
         static Point getCurrLocation();
 
         static void interruptHandler();

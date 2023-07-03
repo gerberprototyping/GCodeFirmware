@@ -71,10 +71,12 @@ void StepDriver::home(bool homeMin) {
     if (!running) {
         // Travel home fast
         while (!checkLimit(dir)) {
-            step(dir);
-            delay_microseconds(MAX_PACE);
+            while (!checkLimit(dir)) {
+                step(dir);
+                delay_microseconds(MAX_PACE);
+            }
+            delay(1);
         }
-        delay(1);
         // Move to deactivate limit switch
         while (checkLimit(dir)) {
             step(!dir);
@@ -111,6 +113,10 @@ void StepDriver::home(bool homeMin) {
             currStep = 0;
         }
     }
+}
+
+bool StepDriver::isAxisCalibrated() {
+    return calibrated;
 }
 
 int StepDriver::testStepping(double maxSpeed) {
@@ -255,6 +261,12 @@ bool StepDriver::isRunning() {
     return running;
 }
 
+bool StepDriver::isCalibrated() {
+    return xStepDriver.calibrated
+        && yStepDriver.calibrated
+        && zStepDriver.calibrated;
+}
+
 Point StepDriver::getCurrLocation() {
     return Point::fromSteps(
           xStepDriver.currStep,
@@ -269,8 +281,8 @@ void StepDriver::interruptHandler() {
         MotionVector motionVec = MotionVector();
         if (motionVectorBuffer.peek(&motionVec)) {
 
-            Point currLocation = getCurrLocation();
-            if (currLocation >= motionVec) {
+            CartesianBool arrived = getCurrLocation() >= motionVec;
+            if (arrived.bitwiseAnd()) {
                 motionVectorBuffer.remove(&motionVec);
             } else {
 
@@ -281,17 +293,23 @@ void StepDriver::interruptHandler() {
                 Velocity velocity = motionVec.getVelocity();
                 CartesianInt pace = 60000000 / (velocity.abs() * STEPS_PER_MM);     // from mm/min to usec/step
 
-                if (deltaT.getX() >= pace.getX()) {
+                if (!arrived.getX()
+                    && (deltaT.getX() >= pace.getX()))
+                {
                     bool xDir = (velocity.getX() >= 0);
                     xStepDriver.step(xDir);
                     prevStepTime.setX(usec);
                 }
-                if (deltaT.getY() >= pace.getY()) {
+                if (!arrived.getY()
+                    && (deltaT.getY() >= pace.getY()))
+                {
                     bool yDir = (velocity.getY() >= 0);
                     yStepDriver.step(yDir);
                     prevStepTime.setY(usec);
                 }
-                if (deltaT.getZ() >= pace.getZ()) {
+                if (!arrived.getZ()
+                    && (deltaT.getZ() >= pace.getZ()))
+                {
                     bool zDir = (velocity.getZ() >= 0);
                     zStepDriver.step(zDir);
                     prevStepTime.setZ(usec);

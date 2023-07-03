@@ -15,10 +15,10 @@
 
 
 
-#define GCODE_ACK_MSG                       "ACK\r\n"
-#define GCODE_NACK_SYNTAX_MSG               "NACK syntax error\r\n"
-#define GCODE_JOB_START_MSG                 "Ready\r\n"
-#define GCODE_JOB_DONE_MSG                  "Job complete\r\n"
+#define GCODE_ACK_MSG                       "ACK"
+#define GCODE_NACK_SYNTAX_MSG               "NACK syntax error"
+#define GCODE_JOB_START_MSG                 "Ready"
+#define GCODE_JOB_DONE_MSG                  "Job complete"
 
 #define GCODE_RX_BUFF_SIZE                  256
 #define GCODE_MAX_WORDS_PER_LINE            20
@@ -27,7 +27,7 @@
 
 
 #define STEP_INTERRUPT_PERIOD               1000
-#define STEP_INSTRUCTION_BUFFER_SIZE        64
+#define STEP_INSTRUCTION_BUFFER_SIZE        8
 
 
 
@@ -51,7 +51,7 @@
 #define Z_HOME_POSITION                     NEGATIVE
 
 #define X_MAX_MM                            180
-#define Y_MAX_MM                            100
+#define Y_MAX_MM                            90
 #define Z_MAX_MM                            999 // dual limit switches used
 #define X_MIN_MM                            -1
 #define Y_MIN_MM                            -1
@@ -88,7 +88,7 @@
 #define Z_LIMIT_NEG_PIN                     ARDUINO_D11
 //#define X_LIMIT_POS_PIN
 //#define Y_LIMIT_POS_PIN
-#define Z_LIMIT_POS_PIN                     B14
+#define Z_LIMIT_POS_PIN                     ARDUINO_A3          // CoolEn on CNC Shield v3
 
 
 #define DUAL_DRIVE_X                        false
@@ -101,7 +101,7 @@
 #define Y2_DIR_PIN                          A_DIR_PIN
 #define Y2_STEP_PIN                         A_STEP_PIN
 //#define Y2_LIMIT_POS_PIN
-#define Y2_LIMIT_NEG_PIN                    C4
+#define Y2_LIMIT_NEG_PIN                    ARDUINO_A1          // Hold on CNC Shield v3
 
 #define DUAL_DRIVE_Z                        false
 #define Z2_DIR_PIN

@@ -17,15 +17,18 @@ namespace GCode {
 
         public:
 
-            Scanner(InputStream* istream);
-            Line getNext(Line &line);
+            Scanner(InputStream* istream, OutputStream* ostream);
+            Line getNext(Line& line);
+            void setEcho(bool echo);
         
         private:
 
             Word getNextWord();
         
             InputStream* istream;
+            OutputStream* ostream;
             bool foundLineEnd;
+            volatile bool echo;
             char ibuf[GCODE_RX_BUFF_SIZE];
 
     };

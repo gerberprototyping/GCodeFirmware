@@ -5,9 +5,17 @@ using namespace GCode;
 
 
 
-Scanner::Scanner(InputStream* istream)
-    : istream(istream), foundLineEnd(false)
+Scanner::Scanner(InputStream* istream, OutputStream* ostream)
+    : istream(istream),
+      ostream(ostream),
+      foundLineEnd(false),
+      echo(true)
 {}
+
+
+void Scanner::setEcho(bool echo) {
+    this->echo = echo;
+}
 
 
 Line Scanner::getNext(Line &line) {
@@ -30,6 +38,9 @@ Word Scanner::getNextWord() {
 
     if (foundLineEnd) {
 
+        if (echo) {
+            ostream->print("\n");
+        }
         foundLineEnd = false;
         word.letter = '\n';
 
@@ -40,7 +51,10 @@ Word Scanner::getNextWord() {
 
         while (!whitespace && i<(GCODE_RX_BUFF_SIZE-1)) {
             ibuf[i] = istream->read();
-            foundLineEnd = (ibuf[i] == '\r');
+            if (echo) {
+                ostream->print(ibuf[i]);
+            }
+            foundLineEnd = ('\r' == ibuf[i]);
             if ( std::isspace(ibuf[i]) ) {
                 whitespace = true;
             }
