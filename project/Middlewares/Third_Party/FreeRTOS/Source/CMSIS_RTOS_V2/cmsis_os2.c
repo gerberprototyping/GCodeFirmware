@@ -77,7 +77,7 @@
 
 #define IS_IRQ()                  IS_IRQ_MODE()
 
-#define SVCall_IRQ_NBR            (IRQn_Type) -5	/* SVCall_IRQ_NBR added as SV_Call handler name is not the same for CM0 and for all other CMx */
+#define SVCall_IRQ_NBR            (IRQn_Type) -5    /* SVCall_IRQ_NBR added as SV_Call handler name is not the same for CM0 and for all other CMx */
 
 /* Limits */
 #define MAX_BITS_TASK_NOTIFY      31U
