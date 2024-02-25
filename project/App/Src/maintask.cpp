@@ -10,13 +10,13 @@
 
 void StartMainTask(void *argument) {
 
-	// Init USB
-	MX_USB_DEVICE_Init();
+    // Init USB
+    MX_USB_DEVICE_Init();
 
-	builtin_led_set(1);
+    builtin_led_set(1);
 
-	while (1) {
-		// infinite loop
-	}
+    while (1) {
+        // infinite loop
+    }
 
 }

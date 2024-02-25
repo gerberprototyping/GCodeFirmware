@@ -5,8 +5,8 @@
  *      Author: Andrew Gerber
  */
 
-#ifndef INC_MAINTASK_H_
-#define INC_MAINTASK_H_
+#ifndef __MAINTASK_H
+#define __MAINTASK_H
 
 #include "stm32f4xx_hal.h"
 #include "cmsis_os.h"
@@ -15,4 +15,4 @@
 #include "builtin.h"
 
 
-#endif /* INC_MAINTASK_H_ */
+#endif /* __MAINTASK_H */

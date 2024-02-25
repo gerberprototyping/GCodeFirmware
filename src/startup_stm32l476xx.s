@@ -6,10 +6,10 @@
 ; @note    
 ; @brief   This is a modified startup code to support Assembly Programs without
 ;          using libraries. Key changes include:
-;		   (1) Remove the call of SystemInit()
-;		   (2) Add codes to initialize memory. 
-;			   Copy the Read/Write data section (RW) and the Zero Initialized 
-;			   section (ZI) from the flash to RAM
+;           (1) Remove the call of SystemInit()
+;           (2) Add codes to initialize memory. 
+;               Copy the Read/Write data section (RW) and the Zero Initialized 
+;               section (ZI) from the flash to RAM
 ;          (3) Enable FPU
 ; @note
 ;           This code is for the book "Embedded Systems with ARM Cortex-M 
@@ -246,42 +246,42 @@ Reset_Handler    PROC
                  ; IMPORT  SystemInit      ; Removed by Zhu
                  IMPORT  __main
 
-;******************** Removed by Dr. Zhu ***************************************************			
-				; IMPORT  SystemInit  
+;******************** Removed by Dr. Zhu ***************************************************            
+                ; IMPORT  SystemInit  
                 ; LDR     R0, =SystemInit  ; Commented out by ZHU
                 ; BLX     R0               ; Commented out by ZHU
-				 
+                 
 ;******************** Added by Dr. Zhu *****************************************************
-				 ; Copy the RW Data from Flash to RAM 
-          LDR	r0,	=|Image$$ER_IROM1$$RO$$Limit|
-				 LDR	r1,	=|Image$$RW_IRAM1$$RW$$Base|
-				 LDR	r3,	=|Image$$RW_IRAM1$$ZI$$Base|
-Copy_RW			 CMP	r1,	r3
-				 LDRCC r2, [r0], #4
-				 STRCC r2, [r1], #4
-				 BCC	Copy_RW
-		
-				 ; Copy the ZI Data from Flash to RAM
-				 LDR	r1,	=|Image$$RW_IRAM1$$ZI$$Limit|
-				 MOV	r2,	#0
-Initialize_ZI	 CMP	r3,	r1
-				 STRCC r2, [r3], #4
-				 BCC	Initialize_ZI
+                 ; Copy the RW Data from Flash to RAM 
+          LDR    r0,    =|Image$$ER_IROM1$$RO$$Limit|
+                 LDR    r1,    =|Image$$RW_IRAM1$$RW$$Base|
+                 LDR    r3,    =|Image$$RW_IRAM1$$ZI$$Base|
+Copy_RW             CMP    r1,    r3
+                 LDRCC r2, [r0], #4
+                 STRCC r2, [r1], #4
+                 BCC    Copy_RW
+        
+                 ; Copy the ZI Data from Flash to RAM
+                 LDR    r1,    =|Image$$RW_IRAM1$$ZI$$Limit|
+                 MOV    r2,    #0
+Initialize_ZI     CMP    r3,    r1
+                 STRCC r2, [r3], #4
+                 BCC    Initialize_ZI
 
-				 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-				 ; Enable FPU
-				 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-				 ; CPACR is located at address 0xE000ED88
-				 LDR.W   R0, =0xE000ED88
-				 ; Read CPACR
-				 LDR     R1, [R0]
-				 ; Set bits 20-23 to enable CP10 and CP11 coprocessors
-				 ORR     R1, R1, #(0xF << 20)
-				 ; Write back the modified value to the CPACR
-				 STR     R1, [R0]; wait for store to complete
-				 DSB
-				 ;reset pipeline now the FPU is enabled
-				 ISB
+                 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+                 ; Enable FPU
+                 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+                 ; CPACR is located at address 0xE000ED88
+                 LDR.W   R0, =0xE000ED88
+                 ; Read CPACR
+                 LDR     R1, [R0]
+                 ; Set bits 20-23 to enable CP10 and CP11 coprocessors
+                 ORR     R1, R1, #(0xF << 20)
+                 ; Write back the modified value to the CPACR
+                 STR     R1, [R0]; wait for store to complete
+                 DSB
+                 ;reset pipeline now the FPU is enabled
+                 ISB
 ;******************** END ********************************************************************
                  LDR     R0, =__main
                  BX      R0

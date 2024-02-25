@@ -5,8 +5,8 @@
  *      Author: Andrew Gerber
  */
 
-#ifndef INC_DFU_BOOTLOADER_H_
-#define INC_DFU_BOOTLOADER_H_
+#ifndef __DFU_BOOTLOADER_H
+#define __DFU_BOOTLOADER_H
 
 #define BOOTLOADER_ROM_ADDR		0x1FFF0000
 
@@ -33,4 +33,4 @@ void jump_to_bootloader() {
 }
 
 
-#endif /* INC_DFU_BOOTLOADER_H_ */
+#endif /* __DFU_BOOTLOADER_H */

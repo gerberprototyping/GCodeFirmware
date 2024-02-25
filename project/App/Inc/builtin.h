@@ -5,8 +5,8 @@
  *      Author: Andrew Gerber
  */
 
-#ifndef INC_BUILTIN_H_
-#define INC_BUILTIN_H_
+#ifndef __BUILTIN_H
+#define __BUILTIN_H
 
 
 #include "main.h"
@@ -25,4 +25,4 @@ static inline bool builtin_btn_read() {
 }
 
 
-#endif /* INC_BUILTIN_H_ */
+#endif /* __BUILTIN_H */
