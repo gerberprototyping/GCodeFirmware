@@ -8,9 +8,11 @@
 #define NEGATIVE                            false
 
 
+#define SERIAL_ECHO                         true
+#define SERIAL_RX_BUFF_SIZE                 128
 
-
-#define UART_ECHO                           true
+#define GCODE_RX_BUFF_SIZE                  256
+#define GCODE_MAX_WORDS_PER_LINE            20
 
 
 
@@ -20,15 +22,11 @@
 #define GCODE_JOB_START_MSG                 "Ready"
 #define GCODE_JOB_DONE_MSG                  "Job complete"
 
-#define GCODE_RX_BUFF_SIZE                  256
-#define GCODE_MAX_WORDS_PER_LINE            20
-
 
 
 
 #define STEP_INTERRUPT_PERIOD               1000
 #define STEP_INSTRUCTION_BUFFER_SIZE        8
-
 
 
 #define STEPPING                            8

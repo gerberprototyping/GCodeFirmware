@@ -8,11 +8,12 @@
 #ifndef __MAINTASK_H
 #define __MAINTASK_H
 
-#include "stm32f4xx_hal.h"
 #include "cmsis_os.h"
-#include "usb_device.h"
 
-#include "builtin.h"
+#ifdef __cplusplus
+extern "C"
+#endif
+void main_init(osMutexId_t RXBuffLock);
 
 
 #endif /* __MAINTASK_H */

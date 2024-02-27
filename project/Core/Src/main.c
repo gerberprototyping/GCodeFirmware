@@ -23,11 +23,12 @@
 
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
-
+#include "maintask.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
 typedef StaticTask_t osStaticThreadDef_t;
+typedef StaticSemaphore_t osStaticMutexDef_t;
 /* USER CODE BEGIN PTD */
 
 /* USER CODE END PTD */
@@ -54,6 +55,14 @@ const osThreadAttr_t MainTask_attributes = {
   .stack_mem = &MainTaskBuffer[0],
   .stack_size = sizeof(MainTaskBuffer),
   .priority = (osPriority_t) osPriorityNormal,
+};
+/* Definitions for RXBuffLock */
+osMutexId_t RXBuffLockHandle;
+osStaticMutexDef_t RXBuffLockControlBlock;
+const osMutexAttr_t RXBuffLock_attributes = {
+  .name = "RXBuffLock",
+  .cb_mem = &RXBuffLockControlBlock,
+  .cb_size = sizeof(RXBuffLockControlBlock),
 };
 /* USER CODE BEGIN PV */
 
@@ -107,6 +116,9 @@ int main(void)
 
   /* Init scheduler */
   osKernelInitialize();
+  /* Create the mutex(es) */
+  /* creation of RXBuffLock */
+  RXBuffLockHandle = osMutexNew(&RXBuffLock_attributes);
 
   /* USER CODE BEGIN RTOS_MUTEX */
   /* add mutexes, ... */
@@ -142,6 +154,8 @@ int main(void)
   /* We should never get here as control is now taken by the scheduler */
   /* Infinite loop */
   /* USER CODE BEGIN WHILE */
+  main_init(RXBuffLockHandle);
+
   while (1)
   {
     /* USER CODE END WHILE */
