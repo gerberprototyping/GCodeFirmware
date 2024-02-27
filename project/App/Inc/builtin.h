@@ -16,7 +16,7 @@ static inline void builtin_led_toggle() {
     HAL_GPIO_TogglePin(BUILTIN_LED_GPIO_Port, BUILTIN_LED_Pin);
 }
 static inline void builtin_led_set(bool state) {
-    HAL_GPIO_WritePin(BUILTIN_LED_GPIO_Port, BUILTIN_LED_Pin, (GPIO_PinState) state);
+    HAL_GPIO_WritePin(BUILTIN_LED_GPIO_Port, BUILTIN_LED_Pin, (GPIO_PinState) (state ? 0 : 1));
 }
 
 

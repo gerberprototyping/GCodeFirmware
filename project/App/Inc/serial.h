@@ -12,17 +12,22 @@
 
 #include "config.h"
 
+#include "cmsis_os.h"
+#include "usb_device.h"
+#include "usbd_cdc_if.h"
+
 
 #ifdef __cplusplus
 extern "C" {
 #endif
 
-    #include "usbd_cdc_if.h"
+    int8_t serial_rx_callback(uint8_t* buff, uint32_t len);
 
-    int8_t serial_rx_callback(uint8_t* buff, uint32_t* len);
-
-    static inline uint8_t serial_tx(uint8_t* buff, uint16_t len) {
-        return CDC_Transmit_FS(buff, len);
+    static inline void serial_tx(uint8_t* buff, uint16_t len) {
+        int8_t status;
+        do {
+            status = CDC_Transmit_FS(buff, len);
+        } while (status != USBD_OK);
     }
 
 #ifdef __cplusplus
@@ -33,8 +38,6 @@ extern "C" {
 
 
 #ifdef __cplusplus
-#include "cmsis_os2.h"
-
 #include "iostream.h"
 #include "serial_iterator.h"
 
@@ -59,7 +62,7 @@ class Serial : public InputStream, public OutputStream {
         void write(const uint8_t* const buff, const uint32_t n);
         void flush();
 
-        friend int8_t serial_rx_callback(uint8_t* buff, uint32_t* len);
+        friend int8_t serial_rx_callback(uint8_t* buff, uint32_t len);
         friend serial_iterator;
 
     private:

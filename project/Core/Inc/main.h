@@ -32,6 +32,8 @@ extern "C" {
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
 
+#include "cmsis_os.h"
+
 /* USER CODE END Includes */
 
 /* Exported types ------------------------------------------------------------*/
@@ -63,6 +65,9 @@ void Error_Handler(void);
 #define BUILTIN_BTN_GPIO_Port GPIOA
 
 /* USER CODE BEGIN Private defines */
+
+extern osThreadId_t MainTaskHandle;
+extern osMutexId_t RXBuffLockHandle;
 
 /* USER CODE END Private defines */
 

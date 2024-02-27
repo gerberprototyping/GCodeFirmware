@@ -8,7 +8,6 @@
 #include "serial.h"
 
 #include "usb_device.h"
-#include "builtin.h"
 
 
 bool Serial::is_init = false;
@@ -34,19 +33,17 @@ uint32_t Serial::available() const {
 
 
 uint8_t Serial::read() {
+    while (rx_empty); // wait for data
     serial_iterator front = rx_front.volatile_read();
-    uint8_t rval = 0;
-    if (!rx_empty) {
-        rval = *front;
-        osMutexAcquire(RXBuffLock, 0);
-            serial_iterator back = rx_back.volatile_read();
-            ++front;
-            rx_front.volatile_write(front);
-            if (front == back) {
-                rx_empty = true;
-            }
-        osMutexRelease(RXBuffLock);
-    }
+    uint8_t rval = *front;
+    osMutexAcquire(RXBuffLock, 0);
+        serial_iterator back = rx_back.volatile_read();
+        ++front;
+        rx_front.volatile_write(front);
+        if (front == back) {
+            rx_empty = true;
+        }
+    osMutexRelease(RXBuffLock);
     return rval;
 }
 
@@ -56,27 +53,28 @@ serial_iterator Serial::peek() {
 }
 
 uint32_t Serial::read(uint8_t* const buff, const uint32_t n) {
+    while (available() < n); // wait for data
     // perform bound checking
-    uint32_t byte_cnt = n;
-    uint32_t avail = available();
-    if (byte_cnt > avail) {
-        byte_cnt = avail;
-    }
+    // uint32_t byte_cnt = n;
+    // uint32_t avail = available();
+    // if (byte_cnt > avail) {
+    //     byte_cnt = avail;
+    // }
     serial_iterator front = rx_front.volatile_read();
     serial_iterator src = front;
-    for (uint32_t i=0; i<byte_cnt; i++) {
+    for (uint32_t i=0; i<n; i++) {
         buff[i] = *src;
         src++;
     }
     osMutexAcquire(RXBuffLock, 0);
         serial_iterator back = rx_back.volatile_read();
-        front += byte_cnt;
+        front += n;
         rx_front.volatile_write(front);
         if (front == back) {
             rx_empty = true;
         }
     osMutexRelease(RXBuffLock);
-    return byte_cnt;
+    return n;
 }
 
 
@@ -188,31 +186,30 @@ void Serial::flush() {
 
 
 
-
-int8_t serial_rx_callback(uint8_t* buff, uint32_t* len) {
-    // uint32_t total_cnt = 0;
-    // while (total_cnt < *len) {
-    //     // Determine number of bytes to copy this loop
-    //     uint32_t byte_cnt = *len - total_cnt;
-    //     uint32_t curr_space = Serial::rx_space();
-    //     if (byte_cnt > curr_space) {
-    //         byte_cnt = curr_space;
-    //     }
-    //     // Copy bytes
-    //     uint8_t* src = buff + total_cnt;
-    //     serial_iterator dest = Serial::rx_back.volatile_read();
-    //     for (uint32_t i=0; i<byte_cnt; i++) {
-    //         *dest = *src;
-    //         ++src;
-    //         ++dest;
-    //     }
-    //     // Update values
-    //     total_cnt += byte_cnt;
-    //     osMutexAcquire(Serial::RXBuffLock, 0);
-    //         Serial::rx_back.volatile_write( dest );
-    //         Serial::rx_empty = false;
-    //     osMutexRelease(Serial::RXBuffLock);
-    // }
+int8_t serial_rx_callback(uint8_t* buff, uint32_t len) {
+    uint32_t total_cnt = 0;
+    uint8_t* src = buff;
+    serial_iterator dest = Serial::rx_back.volatile_read();
+    while (total_cnt < len) {
+        // Determine number of bytes to copy this loop
+        uint32_t byte_cnt = len - total_cnt;
+        uint32_t curr_space = Serial::rx_space();
+        if (byte_cnt > curr_space) {
+            byte_cnt = curr_space;
+        }
+        // Copy bytes
+        for (uint32_t i=0; i<byte_cnt; i++) {
+            *dest = *src;
+            ++src;
+            ++dest;
+        }
+        // Update values
+        total_cnt += byte_cnt;
+        osMutexAcquire(Serial::RXBuffLock, 0);
+            Serial::rx_back.volatile_write( dest );
+            Serial::rx_empty = false;
+        osMutexRelease(Serial::RXBuffLock);
+    }
     return USBD_OK;
 
     // if (SERIAL_RX_BUFF_SIZE-Serial::rx_size() >= *len) {

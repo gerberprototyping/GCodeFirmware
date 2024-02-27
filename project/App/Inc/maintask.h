@@ -9,11 +9,7 @@
 #define __MAINTASK_H
 
 #include "cmsis_os.h"
-
-#ifdef __cplusplus
-extern "C"
-#endif
-void main_init(osMutexId_t RXBuffLock);
+#include "main.h"
 
 
 #endif /* __MAINTASK_H */
