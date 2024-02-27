@@ -24,10 +24,12 @@ extern "C" {
     int8_t serial_rx_callback(uint8_t* buff, uint32_t len);
 
     static inline void serial_tx(uint8_t* buff, uint16_t len) {
-        int8_t status;
-        do {
-            status = CDC_Transmit_FS(buff, len);
-        } while (status != USBD_OK);
+        if (len) {
+            int8_t status;
+            do {
+                status = CDC_Transmit_FS(buff, len);
+            } while (status != USBD_OK);
+        }
     }
 
 #ifdef __cplusplus
@@ -49,17 +51,23 @@ class Serial : public InputStream, public OutputStream {
         Serial() {}
         void init(osMutexId_t RXBuffLock);
 
+        // InputStream functions
         uint32_t available() const;
+
         uint8_t read();
-        serial_iterator peek();
-        uint32_t read(uint8_t* const buff, const uint32_t n);
+        void read(uint8_t* const buff, const uint32_t n);
         uint32_t readline(uint8_t* const buff, const uint32_t nmax);
+
+        serial_iterator peek();
+
         void discard(const uint32_t n);
         void discardall();
         uint32_t discardline();
 
+        // OutputStream functions
         void write(const uint8_t x);
         void write(const uint8_t* const buff, const uint32_t n);
+
         void flush();
 
         friend int8_t serial_rx_callback(uint8_t* buff, uint32_t len);
