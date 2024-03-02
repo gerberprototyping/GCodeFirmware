@@ -108,6 +108,10 @@ class Serial : public InputStream, public OutputStream {
         }
 
 };
+
+
+extern Serial serial;
+
 #endif // _cplusplus
 
 

@@ -36,6 +36,8 @@ class OutputStream {
 
         virtual void flush() = 0;
 
+        virtual void printf(const char* format, ...);
+
         // Inline aliases and variants
         inline void print(const char c) { // single char literal
             write((uint8_t) c);

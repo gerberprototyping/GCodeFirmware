@@ -10,6 +10,8 @@
 #include "usb_device.h"
 
 
+Serial serial = Serial();
+
 bool Serial::is_init = false;
 osMutexId_t Serial::RXBuffLock;
 uint8_t Serial::rx_buff[SERIAL_RX_BUFF_SIZE];
