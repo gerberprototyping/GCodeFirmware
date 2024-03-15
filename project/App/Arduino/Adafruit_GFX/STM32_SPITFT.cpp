@@ -15,6 +15,7 @@ void STM32_SPITFT::initSPI(uint32_t freq, uint8_t spiMode) {
     // already initialized by IDE generated code
     _freq = freq;
     endWrite(); // reset CS
+    spiDataMode();
 }
 
 
@@ -23,9 +24,8 @@ void STM32_SPITFT::sendCommand(uint8_t cmd, const uint8_t* data, uint8_t len) {
 
     spiCmdMode();
     SPI_WRITE8(cmd);
-
+    spiDataMode();
     if (len) {
-        spiDataMode();
         SPI_WRITE(data, len);
     }
 
@@ -207,7 +207,6 @@ void STM32_SPITFT::drawPixel(int16_t x, int16_t y, uint16_t color) {
     if ((x >= 0) && (x < _width) && (y >= 0) && (y < _height)) {
         startWrite();
         setAddrWindow(x, y, 1, 1);
-        spiDataMode();
         SPI_WRITE16(color);
         endWrite();
     }

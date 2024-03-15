@@ -122,10 +122,12 @@ inline void STM32_SPITFT::SPI_WRITE8(uint8_t data) {
 }
 
 inline void STM32_SPITFT::SPI_WRITE16(uint16_t data) {
+    data = __builtin_bswap16(data);
     SPI_WRITE( (uint8_t*) &data, sizeof(data));
 }
 
 inline void STM32_SPITFT::SPI_WRITE32(uint32_t data) {
+    data = __builtin_bswap32(data);
     SPI_WRITE( (uint8_t*) &data, sizeof(data));
 }
 

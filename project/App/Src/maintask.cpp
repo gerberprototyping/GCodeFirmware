@@ -28,10 +28,17 @@ extern "C" void StartMainTask(void *argument) {
     serial.println("USB init complete");
 
     // Wait for input
-    // serial.print("Waiting for input to continue...");
-    // serial.discardall();
-    // serial.read(); // wait for input
-    // serial.write('\n');
+    //  serial.print("Waiting for input to continue...");
+    //  serial.discardall();
+    //  serial.read(); // wait for input
+    //  serial.write('\n');
+
+    for (uint32_t i=0; i<10; i++) {
+        digitalWrite(SPI2_DC, 0);
+        delay(1);
+        digitalWrite(SPI2_DC, 1);
+        delay(1);
+    }
 
     // Init LCD
     display.initR(INITR_BLACKTAB);
@@ -72,6 +79,20 @@ float p = 3.1415926;
 char lorem_ipsum[] = "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Curabitur adipiscing ante sed nibh tincidunt feugiat. Maecenas enim massa, fringilla sed malesuada et, malesuada sit amet turpis. Sed porttitor neque ut ante pretium vitae malesuada nunc bibendum. Nullam aliquet ultrices massa eu hendrerit. Ut sed nisi lorem. In vestibulum purus a tortor imperdiet posuere. ";
 void gfx_test() {
     serial.println("Hello! ST77xx TFT Test");
+
+    for (int i=0; i<2; i++) {
+        display.enableDisplay(false);
+        delay(250);
+        display.enableDisplay(true);
+        delay(250);
+    }
+
+    // for (int i=0; i<2; i++) {
+    //     display.invertDisplay(true);
+    //     delay(1000);
+    //     display.invertDisplay(false);
+    //     delay(1000);
+    // }
 
     uint32_t time = HAL_GetTick();
     display.fillScreen(ST77XX_BLACK);
