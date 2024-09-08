@@ -6,7 +6,10 @@ RTE/*
 *.uvoptx
 *.uvprojx
 *.scvd
+*.ld
 
+F401_project/*
+src.old/*
 
 .vscode/*
 
@@ -44,3 +47,4 @@ _ReSharper*/
 .vs/
 #Nuget packages folder
 packages/
+

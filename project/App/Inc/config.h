@@ -11,6 +11,9 @@
 #define SERIAL_ECHO                         true
 #define SERIAL_RX_BUFF_SIZE                 128
 
+// #define SERIAL_USB
+#define SERIAL_UART
+
 #define GCODE_RX_BUFF_SIZE                  256
 #define GCODE_MAX_WORDS_PER_LINE            20
 

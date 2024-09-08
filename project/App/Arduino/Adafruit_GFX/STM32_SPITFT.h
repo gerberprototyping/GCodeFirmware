@@ -90,27 +90,30 @@ inline void STM32_SPITFT::SPI_WRITE(const uint8_t* data, uint16_t len) {
     if (!len) {
         return;
     }
+    HAL_SPI_StateTypeDef state;
     for (uint32_t i=1; i<=3; i++) {
-        HAL_SPI_StateTypeDef state = HAL_SPI_GetState(_spi);
+        state = HAL_SPI_GetState(_spi);
         if (HAL_SPI_STATE_READY != state) {
             delay(1);
         } else {
             break;
         }
     }
-    delay(100);
-    HAL_SPI_StateTypeDef state = HAL_SPI_GetState(_spi);
     if (HAL_SPI_STATE_READY != state) {
-        uint32_t error = HAL_SPI_GetError(_spi);
-        serial.printf("SPI stuck. state=0x%x  error=0x%lX\r\n", (uint8_t) state, error);
-        while (1) {
-            builtin_led_set(0);
-            delay(3000);
-            for (uint32_t i=0; i<(uint8_t)state; i++) {
-                builtin_led_set(1);
-                delay(500);
+        delay(100);
+        HAL_SPI_StateTypeDef state = HAL_SPI_GetState(_spi);
+        if (HAL_SPI_STATE_READY != state) {
+            uint32_t error = HAL_SPI_GetError(_spi);
+            serial.printf("SPI stuck. state=0x%x  error=0x%lX\r\n", (uint8_t) state, error);
+            while (1) {
                 builtin_led_set(0);
-                delay(500);
+                delay(3000);
+                for (uint32_t i=0; i<(uint8_t)state; i++) {
+                    builtin_led_set(1);
+                    delay(500);
+                    builtin_led_set(0);
+                    delay(500);
+                }
             }
         }
     }

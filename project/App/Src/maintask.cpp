@@ -10,8 +10,9 @@
 
 #define BUFF_SIZE       32
 
-#define SPI2_DC ((gpio_t) {.port=SPI2_DC_GPIO_Port, .pin=SPI2_DC_Pin})
-Adafruit_ST7735 display = Adafruit_ST7735(&SPI2_Handle, SPI2_DC);
+#define TFT_DC ((gpio_t) {.port=TFT_DC_GPIO_Port, .pin=TFT_DC_Pin})
+#define TFT_CS ((gpio_t) {.port=TFT_CS_GPIO_Port, .pin=TFT_CS_Pin})
+Adafruit_ST7735 display = Adafruit_ST7735(&SPI_Handle, TFT_DC, TFT_CS);
 
 char buff[BUFF_SIZE];
 // char str[32];
@@ -25,7 +26,7 @@ extern "C" void StartMainTask(void *argument) {
 
     // Init USB
     serial.init(RXBuffLockHandle);
-    serial.println("USB init complete");
+    serial.println("Serial init complete");
 
     // Wait for input
     //  serial.print("Waiting for input to continue...");
@@ -33,42 +34,19 @@ extern "C" void StartMainTask(void *argument) {
     //  serial.read(); // wait for input
     //  serial.write('\n');
 
-    for (uint32_t i=0; i<10; i++) {
-        digitalWrite(SPI2_DC, 0);
-        delay(1);
-        digitalWrite(SPI2_DC, 1);
-        delay(1);
-    }
-
     // Init LCD
     display.initR(INITR_BLACKTAB);
+    display.setRotation(3);
+    display.fillScreen(ST77XX_BLACK);
+    display.setCursor(0, 0);
+    display.setTextColor(ST77XX_WHITE);
+    display.setTextWrap(true);
     serial.println("LCD init complete");
-    gfx_test();
 
+    serial.println("Init complete\n");
+    display.println("Init complete\n");
 
     while (1) {
-
-        // Test serial.read(buff, len)
-        // uint32_t len;
-        // do {
-        //     len = serial.available();
-        // } while (!len);
-        // if (len > BUFF_SIZE-2) {
-        //     len = BUFF_SIZE-2;
-        // }
-        // serial.read(buff, len);
-        // buff[len++] = '\n';
-        // buff[len++] = '\r';
-        // serial_tx(buff, len);
-        // osDelay(250);
-
-
-        // Test serial.readline(buff, max)
-        // uint32_t len = serial.readline(buff, 32);
-        // serial.print("\n> ");
-        // serial.write(buff, len);
-        // serial.println();
-        // osDelay(10);
 
     }
 
