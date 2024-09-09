@@ -14,6 +14,7 @@
 
 #include "GPIO.h"
 #include "serial.h"
+#include "GCodeController.h"
 
 #include "Arduino.h"
 #include "Adafruit_GFX.h"

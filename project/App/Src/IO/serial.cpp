@@ -7,11 +7,10 @@
 
 #include "serial.h"
 
-// #include "usb_device.h"
-
 
 Serial serial = Serial();
 
+SERIAL_HandleTypeDef* Serial::backend;
 bool Serial::is_init = false;
 osMutexId_t Serial::RXBuffLock;
 uint8_t Serial::rx_buff[SERIAL_RX_BUFF_SIZE];
@@ -20,12 +19,17 @@ volatile serial_iterator Serial::rx_back  = serial_iterator();
 volatile bool Serial::rx_empty = true;
 
 
-void Serial::init(osMutexId_t RXBuffLock) {
+void Serial::init(SERIAL_HandleTypeDef* backend, osMutexId_t RXBuffLock) {
     if (!is_init) {
         is_init = true;
+        this->backend = backend;
         this->RXBuffLock = RXBuffLock;
         #if defined(SERIAL_USB)
             MX_USB_DEVICE_Init();
+        #elif defined (SERIAL_UART)
+            if(HAL_OK != HAL_UART_RegisterCallback(backend, HAL_UART_RX_COMPLETE_CB_ID, &serial_rx_callback) ) {
+                Error_Handler();
+            }
         #endif
     }
 }
@@ -186,12 +190,12 @@ uint32_t Serial::discardline() {
 
 
 void Serial::write(const uint8_t x) {
-    serial_tx((uint8_t*) &x, 1);
+    serial_tx(this->backend, (uint8_t*) &x, 1);
 }
 
 
 void Serial::write(const uint8_t* const buff, const uint32_t n) {
-    serial_tx((uint8_t*) buff, n);
+    serial_tx(this->backend, (uint8_t*) buff, n);
 }
 
 

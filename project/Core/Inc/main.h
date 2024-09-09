@@ -32,6 +32,7 @@ extern "C" {
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
 
+#include "stm32l476xx.h"
 #include "cmsis_os.h"
 
 /* USER CODE END Includes */
@@ -62,7 +63,6 @@ void Error_Handler(void);
 #define UART_Handle huart2
 #define SPI_Handle hspi2
 #define STEP_TIM_Handle htim3
-#define RTC_Handle hrtc
 #define BUILTIN_BTN_Pin GPIO_PIN_13
 #define BUILTIN_BTN_GPIO_Port GPIOC
 #define USART_TX_Pin GPIO_PIN_2
@@ -109,9 +109,9 @@ extern osThreadId_t MainTask_Handle;
 extern osMutexId_t RXBuffLockHandle;
 extern osTimerId_t RXTimerHandle;
 
-extern RTC_HandleTypeDef RTC_Handle;
 extern SPI_HandleTypeDef SPI_Handle;
 extern UART_HandleTypeDef UART_Handle;
+extern TIM_HandleTypeDef STEP_TIM_Handle;
 
 /* USER CODE END Private defines */
 

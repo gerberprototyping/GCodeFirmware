@@ -8,15 +8,11 @@
 #include "maintask.h"
 
 
-#define BUFF_SIZE       32
-
 #define TFT_DC ((gpio_t) {.port=TFT_DC_GPIO_Port, .pin=TFT_DC_Pin})
 #define TFT_CS ((gpio_t) {.port=TFT_CS_GPIO_Port, .pin=TFT_CS_Pin})
 Adafruit_ST7735 display = Adafruit_ST7735(&SPI_Handle, TFT_DC, TFT_CS);
 
-char buff[BUFF_SIZE];
-// char str[32];
-
+const char* INIT_MSG = "Gerber Prototyping PCB Mill\r\nInitializing...\t";
 
 void gfx_test();
 
@@ -25,30 +21,31 @@ extern "C" void StartMainTask(void *argument) {
     builtin_led_set(1);
 
     // Init USB
-    serial.init(RXBuffLockHandle);
-    serial.println("Serial init complete");
+    serial.init(&UART_Handle, RXBuffLockHandle);
 
     // Wait for input
-    //  serial.print("Waiting for input to continue...");
-    //  serial.discardall();
-    //  serial.read(); // wait for input
-    //  serial.write('\n');
+    serial.print("\r\nWaiting for input to continue...");
+    serial.discardall();
+    serial.read(); // wait for input
+    serial.println();
 
     // Init LCD
     display.initR(INITR_BLACKTAB);
     display.setRotation(3);
     display.fillScreen(ST77XX_BLACK);
-    display.setCursor(0, 0);
+    display.setCursor(0, 5);
     display.setTextColor(ST77XX_WHITE);
     display.setTextWrap(true);
-    serial.println("LCD init complete");
 
-    serial.println("Init complete\n");
-    display.println("Init complete\n");
+    // Init main controller
+    GCode::Controller controller = GCode::Controller(&serial, &serial, &STEP_TIM_Handle);
 
-    while (1) {
+    serial.println();
+    serial.println(INIT_MSG);
+    display.println(INIT_MSG);
 
-    }
+    controller.run();
+    while(true);
 
 }
 

@@ -18,7 +18,7 @@
     #include "usb_device.h"
     #include "usbd_cdc_if.h"
 #elif defined(SERIAL_UART)
-    // nothing
+    #define SERIAL_HandleTypeDef UART_HandleTypeDef
 #else
     #error "Serial interface not selected (USB|UART)"
 #endif
@@ -34,7 +34,7 @@ extern "C" {
         void serial_rx_callback(UART_HandleTypeDef *uart);
     #endif
 
-    static inline void serial_tx(uint8_t* buff, uint16_t len) {
+    static inline void serial_tx(SERIAL_HandleTypeDef* backend, uint8_t* buff, uint16_t len) {
         #if defined(SERIAL_USB)
             if (len) {
                 int8_t status;
@@ -46,7 +46,7 @@ extern "C" {
             if (len) {
             	HAL_StatusTypeDef status;
                  do {
-                    status = HAL_UART_Transmit(&UART_Handle, buff, len, 1000);
+                    status = HAL_UART_Transmit(backend, buff, len, 1000);
                  } while (status != HAL_OK);
             }
         #endif
@@ -69,7 +69,7 @@ class Serial : public InputStream, public OutputStream {
     public:
 
         Serial() {}
-        void init(osMutexId_t RXBuffLock);
+        void init(SERIAL_HandleTypeDef* backend, osMutexId_t RXBuffLock);
 
         // InputStream functions
         uint32_t available() const;
@@ -90,12 +90,16 @@ class Serial : public InputStream, public OutputStream {
 
         void flush();
 
-        friend int8_t serial_rx_callback(uint8_t* buff, uint32_t len);
-        friend void serial_rx_callback(UART_HandleTypeDef *uart);
         friend serial_iterator;
+        #if defined(SERIAL_USB)
+            friend int8_t serial_rx_callback(uint8_t* buff, uint32_t len);
+        #elif defined(SERIAL_UART)
+            friend void serial_rx_callback(UART_HandleTypeDef *uart);
+        #endif
 
     private:
 
+        static SERIAL_HandleTypeDef* backend;
         static bool is_init;
 
         // rx buffer
