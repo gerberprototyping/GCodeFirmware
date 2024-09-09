@@ -30,6 +30,7 @@ void Serial::init(SERIAL_HandleTypeDef* backend, osMutexId_t RXBuffLock) {
             // if(HAL_OK != HAL_UART_RegisterCallback(backend, HAL_UART_RX_COMPLETE_CB_ID, &serial_rx_callback) ) {
             //     Error_Handler();
             // }
+            backend->RxISR = &serial_rx_callback;
             ATOMIC_SET_BIT(backend->Instance->CR1, USART_CR1_RXNEIE);
         #endif
     }
@@ -239,18 +240,17 @@ void Serial::flush() {
     }
 #elif defined(SERIAL_UART)
     void serial_rx_callback(UART_HandleTypeDef *uart) {
+        __HAL_UART_SEND_REQ(uart, UART_RXDATA_FLUSH_REQUEST);
         serial_iterator dest = Serial::rx_back.volatile_read();
-        HAL_StatusTypeDef status;
-        do {
-        	status = HAL_UART_Receive(uart, dest.get_raw(), 1, 0);
-        } while (status != HAL_OK);
-        // Update values
-        osMutexAcquire(Serial::RXBuffLock, 0);
-            Serial::rx_back.volatile_write(++dest);
-            Serial::rx_empty = false;
-        osMutexRelease(Serial::RXBuffLock);
-    }
-    void USART2_IRQHandler() {
-        serial_rx_callback(&UART_Handle);
+        if (Serial::rx_space()) {
+            *dest = (uint8_t) READ_REG(uart->Instance->RDR);
+            // Update values
+            osMutexAcquire(Serial::RXBuffLock, 0);
+                Serial::rx_back.volatile_write(++dest);
+                Serial::rx_empty = false;
+            osMutexRelease(Serial::RXBuffLock);
+        } else {
+            //TODO set overflow flag
+        }
     }
 #endif
