@@ -32,6 +32,7 @@ extern "C" {
         int8_t serial_rx_callback(uint8_t* buff, uint32_t len);
     #elif defined(SERIAL_UART)
         void serial_rx_callback(UART_HandleTypeDef *uart);
+        void USART2_IRQHandler();
     #endif
 
     static inline void serial_tx(SERIAL_HandleTypeDef* backend, uint8_t* buff, uint16_t len) {

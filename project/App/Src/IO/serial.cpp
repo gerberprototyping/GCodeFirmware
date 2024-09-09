@@ -27,9 +27,10 @@ void Serial::init(SERIAL_HandleTypeDef* backend, osMutexId_t RXBuffLock) {
         #if defined(SERIAL_USB)
             MX_USB_DEVICE_Init();
         #elif defined (SERIAL_UART)
-            if(HAL_OK != HAL_UART_RegisterCallback(backend, HAL_UART_RX_COMPLETE_CB_ID, &serial_rx_callback) ) {
-                Error_Handler();
-            }
+            // if(HAL_OK != HAL_UART_RegisterCallback(backend, HAL_UART_RX_COMPLETE_CB_ID, &serial_rx_callback) ) {
+            //     Error_Handler();
+            // }
+            ATOMIC_SET_BIT(backend->Instance->CR1, USART_CR1_RXNEIE);
         #endif
     }
 }
@@ -248,5 +249,8 @@ void Serial::flush() {
             Serial::rx_back.volatile_write(++dest);
             Serial::rx_empty = false;
         osMutexRelease(Serial::RXBuffLock);
+    }
+    void USART2_IRQHandler() {
+        serial_rx_callback(&UART_Handle);
     }
 #endif
