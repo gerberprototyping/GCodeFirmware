@@ -13,7 +13,6 @@
 #include "main.h"
 #include "config.h"
 
-#include "cmsis_os.h"
 #if defined(SERIAL_USB)
     #include "usb_device.h"
     #include "usbd_cdc_if.h"
@@ -69,7 +68,7 @@ class Serial : public InputStream, public OutputStream {
     public:
 
         Serial() {}
-        void init(SERIAL_HandleTypeDef* backend, osMutexId_t RXBuffLock);
+        void init(SERIAL_HandleTypeDef* channel);
 
         // InputStream functions
         uint32_t available() const;
@@ -99,25 +98,29 @@ class Serial : public InputStream, public OutputStream {
 
     private:
 
-        static SERIAL_HandleTypeDef* backend;
+        static SERIAL_HandleTypeDef* channel;
         static bool is_init;
 
-        // rx buffer
-        static osMutexId_t RXBuffLock;
+        // RX Buffer
         static uint8_t rx_buff[SERIAL_RX_BUFF_SIZE];
         static volatile serial_iterator rx_front;
         static volatile serial_iterator rx_back;
         static volatile bool rx_empty;
 
+        static volatile bool rx_prev_cr;
+        static TaskHandle_t rx_task;
+
+
         static inline uint32_t rx_size() {
-            osMutexAcquire(RXBuffLock, 0);
-                serial_iterator front = rx_front.volatile_read();
-                serial_iterator back  = rx_back.volatile_read();
-                bool empty = rx_empty;
-            osMutexRelease(RXBuffLock);
+            serial_iterator front = rx_front.volatile_read();
+            serial_iterator back = rx_back.volatile_read();
             uint32_t rval;
             if (back == front) {
-                rval = (empty) ? 0 : SERIAL_RX_BUFF_SIZE;
+                if (!rx_empty && back == rx_back.volatile_read()) {
+                    rval = SERIAL_RX_BUFF_SIZE;
+                } else {
+                    rval = 0;
+                }
             }
             else if (back < front) {
                 rval = serial_iterator::diff((back+SERIAL_RX_BUFF_SIZE), front);
@@ -130,6 +133,19 @@ class Serial : public InputStream, public OutputStream {
 
         static inline uint32_t rx_space() {
             return SERIAL_RX_BUFF_SIZE - rx_size();
+        }
+
+        static inline void inc_rx_front(serial_iterator &front, uint32_t inc) {
+            front += inc;
+            rx_front.volatile_write(front);
+            if (front == rx_back.volatile_read()) {
+                // danger: bad if ISR interrupts here (fixed below)
+                rx_empty = true;
+                // recover from possibility of ISR making buff un-empty
+                if (front != rx_back.volatile_read()) {
+                    rx_empty = false;
+                }
+            }
         }
 
 };

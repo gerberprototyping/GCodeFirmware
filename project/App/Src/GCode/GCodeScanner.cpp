@@ -5,72 +5,109 @@ using namespace GCode;
 
 
 
-Scanner::Scanner(InputStream* istream, OutputStream* ostream)
+Scanner::Scanner(InputStream* istream, OutputStream* ostream, CRC_HandleTypeDef* crc_module)
     : istream(istream),
       ostream(ostream),
-      foundLineEnd(false),
-      echo(true)
+	  crc_module(crc_module)
 {}
 
 
-void Scanner::setEcho(bool echo) {
-    this->echo = echo;
-}
+void Scanner::getNext(Line* line, ResponseCode* rcode) {
+    line->makeEmpty();
+    uint32_t n = istream->readline((uint8_t*) ibuff, GCODE_RX_BUFF_SIZE);
 
-
-Line Scanner::getNext(Line &line) {
-    line.makeEmpty();
-    bool done = false;
-    while (!done) {
-        Word word = getNextWord();
-        if (word.letter == '\n') {
-            done = true;
-        } else {
-            line.add(word);
-        }
+    char* const end = ibuff + n - 1;
+    char* curr = ibuff;
+    // Skip any leading whitespace
+    while (' ' == *curr || '\t' == *curr) {
+        ++curr;
     }
-    return line;
-}
 
+    // Parse words
+    *rcode = RESPONSE_OK;
+    bool has_checksum = false;
+    while (curr <= end) {
 
-Word Scanner::getNextWord() {
-    Word word = Word('\0', 0);
-
-    if (foundLineEnd) {
-
-        if (echo) {
-            ostream->print("\n");
+        // Get letter
+        char letter = std::toupper(*curr);
+        if (has_checksum) {
+            *rcode = RESPONSE_ERR_SYNTAX_ARG_AFTER_CHECKSUM;
         }
-        foundLineEnd = false;
-        word.letter = '\n';
-
-    } else {
-
-        uint32_t i=0;
-        bool whitespace = false;
-
-        while (!whitespace && i<(GCODE_RX_BUFF_SIZE-1)) {
-            ibuf[i] = istream->read();
-            if (echo) {
-                ostream->print(ibuf[i]);
-            }
-            foundLineEnd = ('\r' == ibuf[i]);
-            if ( std::isspace(ibuf[i]) ) {
-                whitespace = true;
-            }
-            else if (std::isalnum(ibuf[i]) || ibuf[i] == '.' || ibuf[i] == '-') {
-                i++;
+        else if ('*' == letter) {
+            has_checksum = true;
+        }
+        ++curr;
+        // Get number
+        double number = 0.0;
+        if (curr <= end && ' ' != *curr && '\t' != *curr) {
+            char* num_end = NULL;
+            number = std::strtod(curr, &num_end);
+            if (curr == num_end) {
+                // invalid number syntax
+                *rcode = RESPONSE_ERR_SYNTAX_NUMBER_FORMAT;
+                // skip non-whitespace
+                while (curr <= end && ' ' != *curr && '\t' != *curr) {
+                    ++curr;
+                }
+            } else {
+                curr = num_end;
             }
         }
-
-        ibuf[i] = '\0';
-        word.number = std::strtod(ibuf+1, NULL);
-        if (word.number != 0 || ibuf[1] == '0' || !std::isalpha(ibuf[0])) {
-            word.letter = std::toupper(ibuf[0]);
+        // Add word
+        line->add(Word(letter, number));
+        // Skip whitespace
+        while (curr <= end && (' ' == *curr || '\t' == *curr)) {
+            ++curr;
         }
 
     }
 
-    return word;
-}
+    // Validate checksum
+    if (has_checksum) {
 
+        // get received checksum
+        int32_t src_checksum = -1;
+        for (uint32_t i=0; i<line->getCount(); ++i) {
+            if ('*' == (*line)[i].letter) {
+                src_checksum = (*line)[i].number;
+                break;
+            }
+        }
+
+        // locate checksum char
+        curr = ibuff;
+        uint32_t len = 0;
+        while (curr <= end && '*' != *curr) {
+            ++curr;
+            ++len;
+        }
+
+        // count digits in checksum
+        uint32_t digits = 0;
+        while (curr <= end && std::isdigit(*curr)) {
+            ++curr;
+            ++digits;
+        }
+
+        // calculate checksum
+        bool checksum_pass = false;
+        if (digits >= 1 && digits <= 3) {
+            // XOR checksum
+            int32_t checksum = 0;
+            for (curr = ibuff; curr <= end && '*' != *curr; ++curr) {
+                checksum = checksum ^ *curr;
+            }
+            checksum &= 0xff;
+            checksum_pass = src_checksum == checksum;
+        }
+        else if (digits == 5) {
+            // CRC
+            int32_t checksum = HAL_CRC_Calculate(crc_module, (uint32_t*) ibuff, len);
+            checksum_pass = src_checksum == checksum;
+        } // else not needed (invalid checksum, pass already = false)
+
+        if (!checksum_pass) {
+            *rcode = RESPONSE_ERR_CHECKSUM;
+        }
+    }
+}

@@ -36,13 +36,13 @@ class OutputStream {
 
         virtual void flush() = 0;
 
-        virtual void printf(const char* format, ...);
+        virtual void printf(const char* const format, ...);
 
         // Inline aliases and variants
         inline void print(const char c) { // single char literal
             write((uint8_t) c);
             }
-        inline void print(const char* str) { // null terminated string
+        inline void print(const char* const str) { // null terminated string
             uint32_t n=0;
             for (; str[n]!='\0'; n++);
             write((uint8_t*) str, n);
@@ -52,7 +52,7 @@ class OutputStream {
             write((uint8_t*) buff, 2);
             flush();
         }
-        inline void println(const char* str) { // null terminated string with line ending
+        inline void println(const char* const str) { // null terminated string with line ending
             print(str);
             println();
         }

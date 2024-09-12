@@ -10,28 +10,31 @@
 
 Serial serial = Serial();
 
-SERIAL_HandleTypeDef* Serial::backend;
+SERIAL_HandleTypeDef* Serial::channel;
 bool Serial::is_init = false;
-osMutexId_t Serial::RXBuffLock;
+
+// RX Buffer
 uint8_t Serial::rx_buff[SERIAL_RX_BUFF_SIZE];
 volatile serial_iterator Serial::rx_front = serial_iterator();
 volatile serial_iterator Serial::rx_back  = serial_iterator();
 volatile bool Serial::rx_empty = true;
 
+volatile bool Serial::rx_prev_cr = false;
+TaskHandle_t Serial::rx_task = NULL;
 
-void Serial::init(SERIAL_HandleTypeDef* backend, osMutexId_t RXBuffLock) {
+
+void Serial::init(SERIAL_HandleTypeDef* channel) {
     if (!is_init) {
         is_init = true;
-        this->backend = backend;
-        this->RXBuffLock = RXBuffLock;
+        this->channel = channel;
+        this->rx_task = xTaskGetCurrentTaskHandle();
         #if defined(SERIAL_USB)
             MX_USB_DEVICE_Init();
         #elif defined (SERIAL_UART)
-            // if(HAL_OK != HAL_UART_RegisterCallback(backend, HAL_UART_RX_COMPLETE_CB_ID, &serial_rx_callback) ) {
-            //     Error_Handler();
-            // }
-            backend->RxISR = &serial_rx_callback;
-            ATOMIC_SET_BIT(backend->Instance->CR1, USART_CR1_RXNEIE);
+            // Manually set RxISR of HAL driver and enable RX-Not-Empty interrupt
+            channel->RxISR = &serial_rx_callback;
+            ATOMIC_SET_BIT(channel->Instance->CR1, USART_CR1_RXNEIE);
+            //TODO register RxEventCallback to ensure USART_CR1_RXNEIE is never cleared
         #endif
     }
 }
@@ -43,94 +46,85 @@ uint32_t Serial::available() const {
 
 
 uint8_t Serial::read() {
-    while (rx_empty); // wait for data
+    // wait for data
+    while (rx_empty) {
+        ulTaskNotifyTake(pdTRUE, portMAX_DELAY);
+    }
+    // read data
     serial_iterator front = rx_front.volatile_read();
     uint8_t rval = *front;
-    osMutexAcquire(RXBuffLock, 0);
-        serial_iterator back = rx_back.volatile_read();
-        ++front;
-        rx_front.volatile_write(front);
-        if (front == back) {
-            rx_empty = true;
-        }
-    osMutexRelease(RXBuffLock);
+    // update pointer
+    inc_rx_front(front, 1);
+    rx_prev_cr = '\r' == rval;
     return rval;
 }
 
 
 void Serial::read(uint8_t* const buff, const uint32_t n) {
-    if (n <= SERIAL_RX_BUFF_SIZE) { // avoid lockup
-        while (available() < n); // wait for data
-        serial_iterator front = rx_front.volatile_read();
-        serial_iterator src = front;
-        for (uint32_t i=0; i<n; i++) {
-            buff[i] = *src;
-            src++;
-        }
-        osMutexAcquire(RXBuffLock, 0);
-            serial_iterator back = rx_back.volatile_read();
-            front += n;
-            rx_front.volatile_write(front);
-            if (front == back) {
-                rx_empty = true;
-            }
-        osMutexRelease(RXBuffLock);
+    if (n > SERIAL_RX_BUFF_SIZE) {
+        buff[0] = '\0';
+        return;
     }
+    // wait for data
+    while (rx_size() < n) {
+        ulTaskNotifyTake(pdTRUE, portMAX_DELAY);
+    }
+    // read data
+    serial_iterator front = rx_front.volatile_read();
+    serial_iterator curr = front;
+    for (uint32_t i=0; i<n; i++) {
+        buff[i] = *curr;
+        ++curr;
+    }
+    // update pointer
+    inc_rx_front(front, n);
+    rx_prev_cr = '\r' == buff[n-1];
 }
 
 
 uint32_t Serial::readline(uint8_t* const buff, const uint32_t nmax) {
     serial_iterator front = rx_front.volatile_read();
+
+    // ignore leading \n if previously character was \r
+    if (rx_prev_cr) {
+        // wait for data
+        while (rx_size() < 1) { ulTaskNotifyTake(pdTRUE, portMAX_DELAY); }
+        if ('\n' == *front) {
+            inc_rx_front(front, 1);
+            ++front;
+        }
+    }
+
     serial_iterator src = front;
-    uint32_t avail = available();
+    uint8_t* dest = buff;
     uint32_t n = 0;
-    uint32_t flush_count = 0;
-    while (n < nmax+1) { // +1 because whitespace is not copied to buffer
-        if (avail <= n) {
-            while (available() <= n); // wait for more data
-        }
-        if ('\r' == *src) {
-            flush_count++;
-            if ((available() > flush_count) && ('\n' == src[1])) {
-                flush_count++;
-            }
+    while (n+1 < nmax) { // +1 for next byte
+        // wait for next byte
+        while (rx_size() < n) { ulTaskNotifyTake(pdTRUE, portMAX_DELAY); }
+
+        // check byte
+        *dest = *src;
+        if ('\r' == *dest || '\n' == *dest) {
+            rx_prev_cr = '\r' == *dest;
+            *dest = '\0'; // add null termination char
             break;
         }
-        else if ('\n' == *src) {
-            flush_count++;
-            break;
-        }
+        ++n;
         ++src;
-        n++;
-        flush_count++;
-        if (n >= SERIAL_RX_BUFF_SIZE) { // avoid lockup
+        ++dest;
+
+        // avoid lockup
+        if (n > SERIAL_RX_BUFF_SIZE) {
             return 0;
         }
     }
-    if (n != flush_count) {
-        // not equal when a line ending was found
-        // copy data
-        src = front;
-        uint8_t* dest = buff;
-        for (uint32_t i=0; i<n; i++) {
-            *dest = *src;
-            ++src;
-            ++dest;
-        }
-        // update values
-        osMutexAcquire(RXBuffLock, 0);
-            serial_iterator back = rx_back.volatile_read();
-            front += flush_count;
-            rx_front.volatile_write(front);
-            if (front == back) {
-                rx_empty = true;
-            }
-        osMutexRelease(RXBuffLock);
-    } else {
+    if (n+1 == nmax) {
         // no line ending found
-        n = 0;
+        return 0;
     }
-    return n;
+    // update pointer
+    inc_rx_front(front, n+1); // +1 for line ending char
+    return n; // number of bytes copied, not including null char
 }
 
 
@@ -140,69 +134,77 @@ serial_iterator Serial::peek() {
 
 
 void Serial::discard(const uint32_t n) {
-    if (n >= available()) {
+	uint32_t avail = available();
+    if (n >= avail) {
         discardall();
     } else {
         serial_iterator front = rx_front.volatile_read();
+        rx_prev_cr = '\r' == *(front + avail);
         front += n;
-        rx_front.volatile_write(front); // guaranteed not to empty, so no mutex needed
+        rx_front.volatile_write(front); // guaranteed not to be empty
     }
 }
 
 void Serial::discardall() {
     serial_iterator front = rx_front.volatile_read();
-    osMutexAcquire(RXBuffLock, 0);
-        front = rx_back.volatile_read();
-        rx_front.volatile_write(front);
-        rx_empty = true;
-    osMutexRelease(RXBuffLock);
+    uint32_t avail = available();
+    rx_prev_cr = '\r' == *(front + avail);
+    inc_rx_front(front, avail);
 }
 
 
 uint32_t Serial::discardline() {
-    uint32_t avail = available();
     serial_iterator front = rx_front.volatile_read();
-    serial_iterator src = front;
-    uint32_t bytes_flushed = 0;
-    while (bytes_flushed < avail) {
-        if ('\r' == *src) {
-            if ((bytes_flushed+1 < avail) && ('\n' == src[1]) ) {
-                ++bytes_flushed;
-            }
-            break;
+
+    // ignore leading \n if previous character was \r
+    if (rx_prev_cr) {
+        // wait for data
+        while (rx_size() < 1) { ulTaskNotifyTake(pdTRUE, portMAX_DELAY); }
+        if ('\n' == *front) {
+            inc_rx_front(front, 1);
+            ++front;
         }
-        else if ('\n' == *src) {
-            break;
-        }
-        ++src;
-        ++bytes_flushed;
     }
-    osMutexAcquire(RXBuffLock, 0);
-        serial_iterator back = rx_back.volatile_read();
-        front += bytes_flushed;
-        rx_front.volatile_write(front);
-        if (front == back) {
-            rx_empty = true;
+
+    serial_iterator src = front;
+    uint32_t n = 0;
+    while (n+1 < SERIAL_RX_BUFF_SIZE) { // +1 for next byte
+        // wait for next byte
+        while (rx_size() < n) { ulTaskNotifyTake(pdTRUE, portMAX_DELAY); }
+
+        // check byte
+        uint8_t c = *src;
+        if ('\r' == c || '\n' == c) {
+            rx_prev_cr = '\r' == c;
+            break;
         }
-    osMutexRelease(RXBuffLock);
-    return bytes_flushed;
+        ++n;
+        ++src;
+    }
+    if (n+1 >= SERIAL_RX_BUFF_SIZE) {
+        // no line ending found
+        return 0;
+    }
+    // update pointer
+    inc_rx_front(front, n+1); // +1 for line ending char
+    return n; // number of bytes skipped, not including line ending
 }
 
 
 
 
 void Serial::write(const uint8_t x) {
-    serial_tx(this->backend, (uint8_t*) &x, 1);
+    serial_tx(this->channel, (uint8_t*) &x, 1);
 }
 
 
 void Serial::write(const uint8_t* const buff, const uint32_t n) {
-    serial_tx(this->backend, (uint8_t*) buff, n);
+    serial_tx(this->channel, (uint8_t*) buff, n);
 }
 
 
 void Serial::flush() {
-    // do nothing
+    // do nothing, no tx buffer
 }
 
 
@@ -244,13 +246,17 @@ void Serial::flush() {
         serial_iterator dest = Serial::rx_back.volatile_read();
         if (Serial::rx_space()) {
             *dest = (uint8_t) READ_REG(uart->Instance->RDR);
-            // Update values
-            osMutexAcquire(Serial::RXBuffLock, 0);
-                Serial::rx_back.volatile_write(++dest);
-                Serial::rx_empty = false;
-            osMutexRelease(Serial::RXBuffLock);
+            Serial::rx_back.volatile_write(++dest);
+            Serial::rx_empty = false;
+            if (NULL != Serial::rx_task) {
+                // Notify RX task that new data is available
+                BaseType_t higher_priority_task_woken = pdFALSE;
+                vTaskNotifyGiveFromISR(Serial::rx_task, &higher_priority_task_woken);
+                // context switch if higher priority task was unblocked
+                portYIELD_FROM_ISR(higher_priority_task_woken);
+            }
         } else {
-            //TODO set overflow flag
+            //TODO set overflow error sticky bit
         }
     }
 #endif

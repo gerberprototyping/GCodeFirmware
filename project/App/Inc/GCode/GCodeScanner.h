@@ -3,6 +3,8 @@
 
 #include <cstdlib>
 #include <cctype>
+
+#include "main.h"
 #include "Config.h"
 #include "IOStream.h"
 #include "GCode.h"
@@ -11,25 +13,22 @@
 
 
 namespace GCode {
-    
-    
+
+
     class Scanner{
 
         public:
 
-            Scanner(InputStream* istream, OutputStream* ostream);
-            Line getNext(Line& line);
-            void setEcho(bool echo);
-        
+            Scanner(InputStream* istream, OutputStream* ostream, CRC_HandleTypeDef* crc_module);
+            void getNext(Line* line, ResponseCode* rcode);
+
         private:
 
-            Word getNextWord();
-        
             InputStream* istream;
             OutputStream* ostream;
-            bool foundLineEnd;
-            volatile bool echo;
-            char ibuf[GCODE_RX_BUFF_SIZE];
+            CRC_HandleTypeDef* crc_module;
+
+            char ibuff[GCODE_RX_BUFF_SIZE];
 
     };
 

@@ -28,7 +28,6 @@
 /* Private typedef -----------------------------------------------------------*/
 typedef StaticTask_t osStaticThreadDef_t;
 typedef StaticTimer_t osStaticTimerDef_t;
-typedef StaticSemaphore_t osStaticMutexDef_t;
 /* USER CODE BEGIN PTD */
 
 /* USER CODE END PTD */
@@ -44,6 +43,8 @@ typedef StaticSemaphore_t osStaticMutexDef_t;
 /* USER CODE END PM */
 
 /* Private variables ---------------------------------------------------------*/
+CRC_HandleTypeDef hcrc;
+
 SPI_HandleTypeDef hspi2;
 
 TIM_HandleTypeDef htim3;
@@ -70,14 +71,6 @@ const osTimerAttr_t RXTimer_attributes = {
   .cb_mem = &RXTimerControlBlock,
   .cb_size = sizeof(RXTimerControlBlock),
 };
-/* Definitions for RXBuffLock */
-osMutexId_t RXBuffLockHandle;
-osStaticMutexDef_t RXBuffLockControlBlock;
-const osMutexAttr_t RXBuffLock_attributes = {
-  .name = "RXBuffLock",
-  .cb_mem = &RXBuffLockControlBlock,
-  .cb_size = sizeof(RXBuffLockControlBlock),
-};
 /* USER CODE BEGIN PV */
 
 /* USER CODE END PV */
@@ -88,6 +81,7 @@ static void MX_GPIO_Init(void);
 static void MX_USART2_UART_Init(void);
 static void MX_SPI2_Init(void);
 static void MX_TIM3_Init(void);
+static void MX_CRC_Init(void);
 void StartMainTask(void *argument);
 void RXCallback(void *argument);
 
@@ -131,15 +125,13 @@ int main(void)
   MX_USART2_UART_Init();
   MX_SPI2_Init();
   MX_TIM3_Init();
+  MX_CRC_Init();
   /* USER CODE BEGIN 2 */
 
   /* USER CODE END 2 */
 
   /* Init scheduler */
   osKernelInitialize();
-  /* Create the mutex(es) */
-  /* creation of RXBuffLock */
-  RXBuffLockHandle = osMutexNew(&RXBuffLock_attributes);
 
   /* USER CODE BEGIN RTOS_MUTEX */
   /* add mutexes, ... */
@@ -240,6 +232,40 @@ void SystemClock_Config(void)
   /** Enable MSI Auto calibration
   */
   HAL_RCCEx_EnableMSIPLLMode();
+}
+
+/**
+  * @brief CRC Initialization Function
+  * @param None
+  * @retval None
+  */
+static void MX_CRC_Init(void)
+{
+
+  /* USER CODE BEGIN CRC_Init 0 */
+
+  /* USER CODE END CRC_Init 0 */
+
+  /* USER CODE BEGIN CRC_Init 1 */
+
+  /* USER CODE END CRC_Init 1 */
+  hcrc.Instance = CRC;
+  hcrc.Init.DefaultPolynomialUse = DEFAULT_POLYNOMIAL_DISABLE;
+  hcrc.Init.DefaultInitValueUse = DEFAULT_INIT_VALUE_DISABLE;
+  hcrc.Init.GeneratingPolynomial = 7;
+  hcrc.Init.CRCLength = CRC_POLYLENGTH_16B;
+  hcrc.Init.InitValue = 1021;
+  hcrc.Init.InputDataInversionMode = CRC_INPUTDATA_INVERSION_NONE;
+  hcrc.Init.OutputDataInversionMode = CRC_OUTPUTDATA_INVERSION_DISABLE;
+  hcrc.InputDataFormat = CRC_INPUTDATA_FORMAT_BYTES;
+  if (HAL_CRC_Init(&hcrc) != HAL_OK)
+  {
+    Error_Handler();
+  }
+  /* USER CODE BEGIN CRC_Init 2 */
+
+  /* USER CODE END CRC_Init 2 */
+
 }
 
 /**

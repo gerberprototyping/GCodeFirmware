@@ -21,7 +21,7 @@ extern "C" void StartMainTask(void *argument) {
     builtin_led_set(1);
 
     // Init USB
-    serial.init(&UART_Handle, RXBuffLockHandle);
+    serial.init(&UART_Handle);
 
     // Wait for input
     serial.print("\r\nWaiting for input to continue...");
@@ -38,7 +38,7 @@ extern "C" void StartMainTask(void *argument) {
     display.setTextWrap(true);
 
     // Init main controller
-    GCode::Controller controller = GCode::Controller(&serial, &serial, &STEP_TIM_Handle);
+    GCode::Controller controller = GCode::Controller(&serial, &serial, &STEP_TIM_Handle, &CRC_Handle);
 
     serial.println();
     serial.println(INIT_MSG);

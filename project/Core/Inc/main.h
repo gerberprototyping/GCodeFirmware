@@ -63,6 +63,7 @@ void Error_Handler(void);
 #define UART_Handle huart2
 #define SPI_Handle hspi2
 #define STEP_TIM_Handle htim3
+#define CRC_Handle hcrc
 #define BUILTIN_BTN_Pin GPIO_PIN_13
 #define BUILTIN_BTN_GPIO_Port GPIOC
 #define USART_TX_Pin GPIO_PIN_2
@@ -112,6 +113,7 @@ extern osTimerId_t RXTimerHandle;
 extern SPI_HandleTypeDef SPI_Handle;
 extern UART_HandleTypeDef UART_Handle;
 extern TIM_HandleTypeDef STEP_TIM_Handle;
+extern CRC_HandleTypeDef CRC_Handle;
 
 /* USER CODE END Private defines */
 

@@ -8,20 +8,19 @@
 #define NEGATIVE                            false
 
 
-#define SERIAL_ECHO                         true
-#define SERIAL_RX_BUFF_SIZE                 128
 
 // #define SERIAL_USB
 #define SERIAL_UART
 
-#define GCODE_RX_BUFF_SIZE                  256
-#define GCODE_MAX_WORDS_PER_LINE            20
+#define SERIAL_RX_BUFF_SIZE                 256
+#define RESPONSE_BUFF_SIZE                  32
+#define GCODE_RX_BUFF_SIZE                  128
+#define GCODE_MAX_WORDS_PER_LINE            21
 
 
 
 
-#define GCODE_ACK_MSG                       "ACK"
-#define GCODE_NACK_SYNTAX_MSG               "NACK syntax error"
+
 #define GCODE_JOB_START_MSG                 "Ready"
 #define GCODE_JOB_DONE_MSG                  "Job complete"
 

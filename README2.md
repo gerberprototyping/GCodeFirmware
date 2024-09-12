@@ -64,7 +64,7 @@ TODO
 |------------|-------------|
 | 1 | Syntax error
 | 2 | Line number error
-| 3 | Checksum or CRC error
+| 3 | Checksum error
 
 
 ## G-Commands

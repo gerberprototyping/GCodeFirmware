@@ -17,7 +17,7 @@ namespace GCode {
 
         public:
 
-            Controller(InputStream* istream, OutputStream* ostream, TIM_HandleTypeDef* timer);
+            Controller(InputStream* istream, OutputStream* ostream, TIM_HandleTypeDef* timer, CRC_HandleTypeDef* crc_module);
             ~Controller() {}
 
             void run();
@@ -33,15 +33,13 @@ namespace GCode {
             OutputStream* ostream;
             Scanner scanner;
 
-            bool G0(Line &line);        // Rapid Positioning
-            bool G1(Line &line);        // Linear Interpolation
-            bool G28(Line &line);       // Home
-            bool G90(Line &line);       // Absolute Positioning
-            bool G91(Line &line);       // Relative Positioning
-            bool G92(Line &line);       // Set Position (workspace coordinate system)
-            bool G92_1(Line &line);     // Reset Position (use native machine coordinates)
-
-            bool M111(Line &line);      // Set debug level (see source for details)
+            ResponseCode G0(Line &line);        // Rapid Positioning
+            ResponseCode G1(Line &line);        // Linear Interpolation
+            ResponseCode G28(Line &line);       // Home
+            ResponseCode G90(Line &line);       // Absolute Positioning
+            ResponseCode G91(Line &line);       // Relative Positioning
+            ResponseCode G92(Line &line);       // Set Position (workspace coordinate system)
+            ResponseCode G92_1(Line &line);     // Reset Position (i.e. use native machine coordinates)
 
     };
 

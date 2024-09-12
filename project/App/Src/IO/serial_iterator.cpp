@@ -8,9 +8,7 @@
 #include "serial_iterator.h"
 
 #include "serial.h"
-
-#define BASE    (Serial::rx_buff)
-
+#define BASE Serial::rx_buff
 
 serial_iterator::serial_iterator() {
     ptr = BASE;
@@ -40,7 +38,7 @@ uint32_t serial_iterator::diff(const serial_iterator &lhs, const serial_iterator
 }
 
 bool serial_iterator::overflow() const {
-    return ptr > BASE + SERIAL_RX_BUFF_SIZE;
+    return ptr > (BASE + SERIAL_RX_BUFF_SIZE);
 }
 
 bool serial_iterator::underflow() const {
