@@ -56,12 +56,12 @@ void Controller::run() {
         }
         else if ( Word('M', 111) == line[0]) {
             success = M111(line);
-        } else {
-            ostream->println(GCODE_NACK_SYNTAX_MSG);
         }
 
         if (success) {
             ostream->println(GCODE_ACK_MSG);
+        } else {
+            ostream->println(GCODE_NACK_SYNTAX_MSG);
         }
 
     }

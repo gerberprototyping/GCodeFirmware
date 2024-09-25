@@ -10,9 +10,9 @@
 
 
 
-#define UART_ECHO                           true
-
-
+#define UART_ECHO                           false
+#define UART_RX_BUFF_SIZE                   256
+#define UART_TX_BUFF_SIZE                   256
 
 
 #define GCODE_ACK_MSG                       "ACK"

@@ -62,17 +62,15 @@
 #define UART5_DMA_RX_CH_IRQn    DMA2_Channel2_IRQn
 #define UART5_DMA_TX_CH_IRQn    DMA2_Channel1_IRQn
 
-#define RX_INDEX                0
-#define TX_INDEX                1
 
-#define BUFFER_SIZE          2048
+extern "C" void USART2_IRQHandler();
 
 
 class UART: public InputStream, public OutputStream {
 
     public:
 
-        UART(USART_TypeDef *uart_ptr, uint32_t baud_rate);
+        UART(USART_TypeDef* uart_ptr, uint32_t baud_rate);
 
         uint8_t read();
         int read(char *buffer, uint32_t n);
@@ -80,12 +78,29 @@ class UART: public InputStream, public OutputStream {
         void write(uint8_t x);
         void flush();
 
+        friend void USART2_IRQHandler();
+
     private:
 
-        USART_TypeDef *uart;
-        uint32_t baud;
+        static USART_TypeDef* uart;
+        static uint32_t baud;
 
-        void init();
+        static void init();
+
+        static inline void set_rxneie()    { uart->CR1 |= USART_CR1_RXNEIE; }
+        static inline void clear_rxneie()  { uart->CR1 &= USART_CR1_RXNEIE; }
+        static inline void set_txeie()     { uart->CR1 |= USART_CR1_TXEIE; }
+        static inline void clear_txeie()   { uart->CR1 &= ~USART_CR1_TXEIE; }
+
+        static uint8_t* volatile rx_front;
+        static uint8_t* volatile rx_back;
+        static volatile bool rx_empty;
+        static uint8_t* volatile tx_front;
+        static uint8_t* volatile tx_back;
+        static volatile bool tx_empty;
+
+        static uint8_t rx_buff[UART_RX_BUFF_SIZE];
+        static uint8_t tx_buff[UART_TX_BUFF_SIZE];
 
 };
 

@@ -10,7 +10,7 @@ RTE/*
 
 .vscode/*
 
-
+keil/*
 
 
 #Ignore thumbnails created by Windows
@@ -44,3 +44,4 @@ _ReSharper*/
 .vs/
 #Nuget packages folder
 packages/
+
